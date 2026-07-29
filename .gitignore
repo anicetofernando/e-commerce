@@ -45,3 +45,6 @@ next-env.d.ts
 
 # local embedded PostgreSQL (PGlite) data for development
 /.pgdata
+
+# Claude Code session runtime state
+.claude/scheduled_tasks.lock

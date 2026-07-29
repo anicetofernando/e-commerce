@@ -9,7 +9,10 @@ import {
   ProductCondition,
 } from "../src/generated/prisma/client";
 
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 1 });
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: Number(process.env.PG_POOL_MAX) || 5,
+});
 const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
 
 type CategorySeed = {
@@ -1210,25 +1213,33 @@ const BLOG_POSTS = [
 ];
 
 async function main() {
+  // Wake up a possibly-suspended serverless Postgres compute (e.g. Neon) before
+  // opening a transaction, so the transaction's own acquisition timeout doesn't
+  // race the cold-start latency.
+  await prisma.$queryRawUnsafe("SELECT 1");
+
   console.log("A limpar dados existentes...");
-  await prisma.$transaction([
-    prisma.orderItem.deleteMany(),
-    prisma.order.deleteMany(),
-    prisma.review.deleteMany(),
-    prisma.wishlistItem.deleteMany(),
-    prisma.productCompatibility.deleteMany(),
-    prisma.productSpec.deleteMany(),
-    prisma.productImage.deleteMany(),
-    prisma.product.deleteMany(),
-    prisma.machineModel.deleteMany(),
-    prisma.brand.deleteMany(),
-    prisma.category.deleteMany(),
-    prisma.address.deleteMany(),
-    prisma.contactMessage.deleteMany(),
-    prisma.newsletterSubscriber.deleteMany(),
-    prisma.blogPost.deleteMany(),
-    prisma.user.deleteMany(),
-  ]);
+  await prisma.$transaction(
+    [
+      prisma.orderItem.deleteMany(),
+      prisma.order.deleteMany(),
+      prisma.review.deleteMany(),
+      prisma.wishlistItem.deleteMany(),
+      prisma.productCompatibility.deleteMany(),
+      prisma.productSpec.deleteMany(),
+      prisma.productImage.deleteMany(),
+      prisma.product.deleteMany(),
+      prisma.machineModel.deleteMany(),
+      prisma.brand.deleteMany(),
+      prisma.category.deleteMany(),
+      prisma.address.deleteMany(),
+      prisma.contactMessage.deleteMany(),
+      prisma.newsletterSubscriber.deleteMany(),
+      prisma.blogPost.deleteMany(),
+      prisma.user.deleteMany(),
+    ],
+    { maxWait: 20000, timeout: 20000 },
+  );
 
   console.log("A criar categorias...");
   const categoryByKey = new Map<string, string>();

@@ -9,10 +9,14 @@ const globalForDb = globalThis as unknown as {
 };
 
 // The local dev database (PGlite via a TCP socket shim, see scripts/pg-server.mjs)
-// only handles one connection at a time, so the pool is capped at a single client.
+// only handles one connection at a time, so local .env sets PG_POOL_MAX=1. Real
+// Postgres (production) doesn't need that constraint, so it defaults higher.
 const pool =
   globalForDb.pgPool ??
-  new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 1 });
+  new pg.Pool({
+    connectionString: process.env.DATABASE_URL,
+    max: Number(process.env.PG_POOL_MAX) || 5,
+  });
 
 const adapter = new PrismaPg(pool);
 
