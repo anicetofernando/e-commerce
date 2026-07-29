@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <defs>
+    <linearGradient id="bg-carroceria" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#eef4ff" />
+      <stop offset="100%" stop-color="#ffffff" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="800" rx="32" fill="url(#bg-carroceria)" />
+  <circle cx="400" cy="400" r="270" fill="#ffe6d5" opacity="0.5" />
+  <g transform="translate(400 400)" fill="none" stroke="#1a2436" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+    
+    <path d="M -190 60 q 0 -140 190 -140 q 190 0 190 140 v40 h-380 Z" fill="#fff" />
+    <path d="M -110 -60 q 40 -40 110 -40 q 70 0 110 40" fill="none" />
+    <rect x="-190" y="100" width="380" height="30" rx="10" fill="#f2600c" stroke="none" />
+    <circle cx="-110" cy="130" r="34" fill="#1a2436" stroke="none" />
+    <circle cx="110" cy="130" r="34" fill="#1a2436" stroke="none" />
+  
+  </g>
+</svg>

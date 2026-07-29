@@ -2,7 +2,7 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #101826;
 }
 
 @theme inline {
@@ -10,17 +10,98 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Albimaq brand orange */
+  --color-brand-50: #fff4ed;
+  --color-brand-100: #ffe6d5;
+  --color-brand-200: #ffc9a8;
+  --color-brand-300: #ffa470;
+  --color-brand-400: #ff7a38;
+  --color-brand-500: #f2600c;
+  --color-brand-600: #e04a00;
+  --color-brand-700: #b93900;
+  --color-brand-800: #942f08;
+  --color-brand-900: #7a2a0c;
+  --color-brand-950: #421203;
+
+  /* Industrial dark navy, used for header/footer/dark sections */
+  --color-ink-50: #f4f6f9;
+  --color-ink-100: #e6eaf1;
+  --color-ink-200: #c9d2e0;
+  --color-ink-300: #9fadc4;
+  --color-ink-400: #6d7fa0;
+  --color-ink-500: #4d5f82;
+  --color-ink-600: #384a68;
+  --color-ink-700: #2b3a54;
+  --color-ink-800: #1a2436;
+  --color-ink-900: #101826;
+  --color-ink-950: #0a0f1a;
+
+  /* Neutral graphite grey sampled from the Albimaq logotype */
+  --color-graphite-400: #8a8d8f;
+  --color-graphite-500: #6b6e70;
+  --color-graphite-600: #55585a;
+  --color-graphite-700: #404244;
+
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-\[fade-in-up_0\.5s_ease\] {
+    animation: none !important;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+::selection {
+  background: var(--color-brand-200);
+  color: var(--color-brand-950);
+}
+
+.container-page {
+  width: 100%;
+  max-width: 84rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container-page {
+    padding-inline: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-page {
+    padding-inline: 2rem;
+  }
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

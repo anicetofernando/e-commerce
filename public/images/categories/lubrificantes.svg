@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <defs>
+    <linearGradient id="bg-lubrificantes" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fdf6e3" />
+      <stop offset="100%" stop-color="#ffffff" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="800" rx="32" fill="url(#bg-lubrificantes)" />
+  <circle cx="400" cy="400" r="270" fill="#ffe6d5" opacity="0.5" />
+  <g transform="translate(400 400)" fill="none" stroke="#1a2436" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+    
+    <path d="M -70 -190 h140 l20 60 v300 a20 20 0 0 1 -20 20 h-140 a20 20 0 0 1 -20 -20 v-300 Z" fill="#fff" />
+    <rect x="-90" y="-10" width="180" height="90" fill="#f2600c" stroke="none" />
+    <rect x="-40" y="-230" width="80" height="50" rx="8" fill="#1a2436" stroke="none" />
+  
+  </g>
+</svg>

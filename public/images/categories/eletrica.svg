@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <defs>
+    <linearGradient id="bg-eletrica" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff8e1" />
+      <stop offset="100%" stop-color="#ffffff" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="800" rx="32" fill="url(#bg-eletrica)" />
+  <circle cx="400" cy="400" r="270" fill="#ffe6d5" opacity="0.5" />
+  <g transform="translate(400 400)" fill="none" stroke="#1a2436" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+    
+    <rect x="-110" y="-160" width="220" height="320" rx="24" fill="#fff" />
+    <rect x="-70" y="-200" width="50" height="40" fill="#1a2436" />
+    <rect x="20" y="-200" width="50" height="40" fill="#1a2436" />
+    <line x1="-60" y1="-80" x2="60" y2="-80" stroke="#f2600c" />
+    <line x1="-60" y1="-20" x2="60" y2="-20" stroke="#f2600c" />
+    <line x1="-60" y1="40" x2="60" y2="40" stroke="#f2600c" />
+    <path d="M -20 -140 L -50 0 L 10 0 L -20 160" fill="none" stroke="#e04a00" stroke-width="14" />
+  
+  </g>
+</svg>
