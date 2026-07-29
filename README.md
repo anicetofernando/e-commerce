@@ -92,6 +92,29 @@ src/app/                   Rotas (App Router), em português: /loja, /produto/[s
   dinâmicas (`force-dynamic` ou uso de `cookies()`), para refletirem sempre stock e
   preços atuais.
 
+## Produção
+
+Site em produção: **https://albimaq-pecas.vercel.app** (projeto Vercel
+`tonline/albimaq-pecas`, deploy automático a cada `git push` para `master`).
+
+Base de dados de produção: **Neon Postgres**, provisionada através da integração de
+marketplace da Vercel (`vercel install neon`) — criou automaticamente as variáveis
+`DATABASE_URL` (pooled) e `DATABASE_URL_UNPOOLED` (ligação direta) no projeto Vercel.
+`SESSION_SECRET` de produção foi definido manualmente (valor aleatório, diferente do
+usado em desenvolvimento local).
+
+> **Nota**: bases de dados serverless como o Neon "adormecem" quando inativas; o
+> `prisma/seed.ts` faz um *warm-up* (`SELECT 1`) antes de abrir transações e usa um
+> `timeout`/`maxWait` mais generoso para tolerar esse arranque a frio.
+
+Para gerir o deploy manualmente (fora do auto-deploy do GitHub):
+
+```bash
+npx vercel link              # liga esta pasta ao projeto Vercel (uma vez)
+npx vercel env pull          # traz as variáveis de ambiente de produção para .env.local
+npx vercel deploy --prod     # faz deploy manual para produção
+```
+
 ## Substituir pelos dados reais da Albimaq
 
 1. Atualizar `src/lib/constants.ts` (`CONTACT_INFO`) com morada, telefones e email reais.
