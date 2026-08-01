@@ -32,6 +32,7 @@ export default async function Home() {
   return (
     <>
       <Hero />
+      <BrandsStrip brands={brands} />
       <CategoryGrid categories={categories} />
 
       {featured.length > 0 && (
@@ -57,7 +58,6 @@ export default async function Home() {
       )}
 
       <PromoBanners />
-      <BrandsStrip brands={brands} />
       <Testimonials />
       <BlogPreview posts={posts} />
       <CtaBand />

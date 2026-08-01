@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Search, User, Heart, Phone, Mail, Wrench } from "lucide-react";
+import { Search, User, Heart, Phone, Mail, Wrench, BookOpen } from "lucide-react";
 import { getCategories } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { CONTACT_INFO } from "@/lib/constants";
 import { Container } from "@/components/ui/container";
 import { CartButton } from "@/components/layout/cart-button";
 import { MobileMenu } from "@/components/layout/mobile-menu";
+import { CategoriesMenu } from "@/components/layout/categories-menu";
 import { Logo } from "@/components/layout/logo";
 
 export async function Header() {
@@ -13,7 +14,7 @@ export async function Header() {
 
   return (
     <header className="sticky top-0 z-40 bg-white shadow-sm">
-      <div className="hidden border-b border-brand-100 bg-brand-50 text-ink-600 lg:block">
+      <div className="hidden border-b border-ink-100 bg-white text-ink-600 lg:block">
         <Container className="flex h-9 items-center justify-between text-xs">
           <div className="flex items-center gap-5">
             <a href={`tel:${CONTACT_INFO.phonePrimary}`} className="flex items-center gap-1.5 hover:text-brand-700">
@@ -37,16 +38,22 @@ export async function Header() {
 
         <Logo />
 
-        <form action="/loja" method="GET" className="hidden flex-1 lg:block">
-          <div className="relative">
+        <form action="/loja" method="GET" className="hidden flex-1 lg:flex">
+          <div className="relative flex-1">
             <input
               type="text"
               name="q"
               placeholder="Pesquisar por peça, referência OEM ou nº de série..."
-              className="w-full rounded-md border border-ink-200 bg-ink-50 py-2.5 pr-4 pl-11 text-sm outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/20"
+              className="h-11 w-full rounded-l-md border border-r-0 border-ink-200 bg-white py-2.5 pr-4 pl-11 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
             />
             <Search size={18} className="absolute top-1/2 left-3.5 -translate-y-1/2 text-ink-400" />
           </div>
+          <button
+            type="submit"
+            className="h-11 shrink-0 rounded-r-md bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700"
+          >
+            Pesquisar
+          </button>
         </form>
 
         <div className="ml-auto flex items-center gap-1 lg:ml-0">
@@ -89,22 +96,30 @@ export async function Header() {
 
       <div className="hidden bg-brand-600 lg:block">
         <Container>
-          <nav className="scrollbar-none flex items-center gap-6 overflow-x-auto py-2.5 text-sm font-semibold text-white">
+          <nav className="flex items-stretch gap-2 text-sm font-semibold text-white">
+            <CategoriesMenu categories={categories} />
+
             <Link
               href="/marcas"
-              className="flex shrink-0 items-center gap-1.5 rounded-md bg-graphite-500 px-3 py-1.5 text-white hover:bg-graphite-600"
+              className="flex shrink-0 items-center gap-1.5 self-center rounded-md bg-graphite-500 px-3 py-2 text-white hover:bg-graphite-600"
             >
               <Wrench size={14} />
               Encontrar por Máquina
             </Link>
-            <Link href="/loja" className="shrink-0 text-white/90 hover:text-white">
+
+            <Link href="/loja" className="flex shrink-0 items-center rounded-md px-3 py-2 text-white/90 hover:text-white">
               Todas as Peças
             </Link>
-            {categories.map((c) => (
-              <Link key={c.id} href={`/loja?categoria=${c.slug}`} className="shrink-0 text-white/90 hover:text-white">
-                {c.name}
-              </Link>
-            ))}
+
+            <span className="my-2.5 h-4 w-px shrink-0 self-center bg-white/20" aria-hidden="true" />
+
+            <Link
+              href="/blog"
+              className="flex shrink-0 items-center gap-1.5 rounded-md px-3 py-2 text-white/90 hover:text-white"
+            >
+              <BookOpen size={14} />
+              Blog Técnico
+            </Link>
           </nav>
         </Container>
       </div>
