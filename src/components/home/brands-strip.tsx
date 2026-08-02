@@ -1,29 +1,14 @@
 import Image from "next/image";
 import { Container } from "@/components/ui/container";
-
-const BRAND_LOGOS: Record<string, string> = {
-  bobcat: "/images/brands/bobcat.png",
-  "case-ce": "/images/brands/case-ce.png",
-  caterpillar: "/images/brands/caterpillar.png",
-  doosan: "/images/brands/doosan.png",
-  hitachi: "/images/brands/hitachi.png",
-  "hyundai-ce": "/images/brands/hyundai-ce.png",
-  jcb: "/images/brands/jcb.png",
-  "john-deere": "/images/brands/john-deere.png",
-  komatsu: "/images/brands/komatsu.png",
-  liebherr: "/images/brands/liebherr.png",
-  "new-holland-ce": "/images/brands/new-holland-ce.png",
-  "volvo-ce": "/images/brands/volvo-ce.png",
-};
+import { SectionHeading } from "@/components/ui/section-heading";
+import { BRAND_LOGOS } from "@/lib/brand-logos";
 
 export function BrandsStrip({ brands }: { brands: { id: string; name: string; slug: string }[] }) {
   return (
     <section className="bg-ink-50/60 py-14 sm:py-16">
       <Container>
-        <p className="mb-8 text-center text-xs font-bold tracking-widest text-ink-500 uppercase">
-          Peças compatíveis com as principais marcas do mercado
-        </p>
-        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-ink-100 bg-ink-100 sm:grid-cols-3 lg:grid-cols-6">
+        <SectionHeading title="Marcas" centered />
+        <div className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-ink-100 bg-ink-100 sm:grid-cols-3 lg:grid-cols-6">
           {brands.map((b) => {
             const logo = BRAND_LOGOS[b.slug];
             return (

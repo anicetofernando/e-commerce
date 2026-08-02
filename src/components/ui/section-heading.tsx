@@ -7,13 +7,36 @@ export function SectionHeading({
   description,
   href,
   hrefLabel = "Ver tudo",
+  centered = false,
 }: {
   eyebrow?: string;
   title: string;
   description?: string;
   href?: string;
   hrefLabel?: string;
+  centered?: boolean;
 }) {
+  if (centered) {
+    return (
+      <div className="text-center">
+        {eyebrow && (
+          <p className="mb-1.5 text-xs font-bold tracking-widest text-brand-600 uppercase">{eyebrow}</p>
+        )}
+        <h2 className="text-2xl font-bold text-ink-900 sm:text-3xl">{title}</h2>
+        {description && <p className="mx-auto mt-2 max-w-2xl text-sm text-ink-600">{description}</p>}
+        {href && (
+          <Link
+            href={href}
+            className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700"
+          >
+            {hrefLabel}
+            <ArrowRight size={16} />
+          </Link>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-wrap items-end justify-between gap-4">
       <div>

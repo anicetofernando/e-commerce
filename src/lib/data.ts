@@ -7,9 +7,18 @@ const PAGE_SIZE = 12;
 
 function toCardData(
   product: Prisma.ProductGetPayload<{
-    include: { images: { take: 1 }; category: true };
+    include: {
+      images: { take: 1 };
+      category: true;
+      compatibility: { include: { machineModel: { include: { brand: true } } } };
+    };
   }>,
 ): ProductCardData {
+  const brands = new Map<string, { name: string; slug: string }>();
+  for (const c of product.compatibility) {
+    brands.set(c.machineModel.brand.slug, { name: c.machineModel.brand.name, slug: c.machineModel.brand.slug });
+  }
+
   return {
     id: product.id,
     sku: product.sku,
@@ -27,12 +36,14 @@ function toCardData(
     image: product.images[0] ? { url: product.images[0].url, alt: product.images[0].alt } : null,
     categoryName: product.category.name,
     categorySlug: product.category.slug,
+    brands: Array.from(brands.values()),
   };
 }
 
 const cardInclude = {
   images: { take: 1 as const, orderBy: { position: "asc" as const } },
   category: true,
+  compatibility: { include: { machineModel: { include: { brand: true } } } },
 } satisfies Prisma.ProductInclude;
 
 export async function getCategories(): Promise<CategoryNavData[]> {

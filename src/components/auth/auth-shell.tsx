@@ -13,7 +13,7 @@ export function AuthShell({
   return (
     <div className="grid min-h-[calc(100vh-5rem)] lg:grid-cols-2">
       <div className="hidden flex-col justify-between bg-ink-900 p-10 text-white lg:flex">
-        <Logo dark />
+        <Logo />
         <div>
           <h2 className="text-2xl font-bold">Peças que mantêm a sua obra a funcionar.</h2>
           <ul className="mt-6 space-y-4 text-sm text-ink-300">

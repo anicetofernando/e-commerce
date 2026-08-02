@@ -8,12 +8,7 @@ export function CategoryGrid({ categories }: { categories: CategoryNavData[] }) 
   return (
     <section className="py-14 sm:py-16">
       <Container>
-        <SectionHeading
-          eyebrow="Catálogo"
-          title="Compre por Categoria"
-          description="Navegue pelas principais categorias de peças para equipamento pesado e encontre rapidamente o que procura."
-          href="/loja"
-        />
+        <SectionHeading title="Compre por Categoria" href="/loja" centered />
         <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           {categories.map((c) => (
             <Link

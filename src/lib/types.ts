@@ -15,6 +15,7 @@ export type ProductCardData = {
   image: { url: string; alt: string } | null;
   categoryName: string;
   categorySlug: string;
+  brands: { name: string; slug: string }[];
 };
 
 export type CategoryNavData = {

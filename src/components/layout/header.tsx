@@ -1,12 +1,13 @@
 import Link from "next/link";
-import { Search, User, Heart, Phone, Mail, Wrench, BookOpen } from "lucide-react";
+import Image from "next/image";
+import { Search, User, Heart, Phone, Mail, Wrench, LayoutGrid } from "lucide-react";
 import { getCategories } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
 import { CONTACT_INFO } from "@/lib/constants";
 import { Container } from "@/components/ui/container";
 import { CartButton } from "@/components/layout/cart-button";
 import { MobileMenu } from "@/components/layout/mobile-menu";
-import { CategoriesMenu } from "@/components/layout/categories-menu";
+import { NavDropdown } from "@/components/layout/nav-dropdown";
 import { Logo } from "@/components/layout/logo";
 
 export async function Header() {
@@ -27,7 +28,6 @@ export async function Header() {
           <div className="flex items-center gap-5">
             <Link href="/sobre" className="hover:text-brand-700">Sobre Nós</Link>
             <Link href="/contacto" className="hover:text-brand-700">Contacto</Link>
-            <Link href="/blog" className="hover:text-brand-700">Blog Técnico</Link>
             <Link href="/conta/pedidos" className="hover:text-brand-700">Rastrear Encomenda</Link>
           </div>
         </Container>
@@ -97,29 +97,49 @@ export async function Header() {
       <div className="hidden bg-brand-600 lg:block">
         <Container>
           <nav className="flex items-stretch gap-2 text-sm font-semibold text-white">
-            <CategoriesMenu categories={categories} />
-
-            <Link
-              href="/marcas"
-              className="flex shrink-0 items-center gap-1.5 self-center rounded-md bg-graphite-500 px-3 py-2 text-white hover:bg-graphite-600"
+            <NavDropdown
+              label="Categorias"
+              icon={<LayoutGrid size={14} />}
+              buttonClassName="rounded-none bg-white px-4 text-ink-900 hover:bg-ink-50"
+              panelClassName="w-[520px]"
             >
-              <Wrench size={14} />
-              Encontrar por Máquina
+              <div className="grid grid-cols-2 gap-1">
+                {categories.map((c) => (
+                  <Link
+                    key={c.id}
+                    href={`/loja?categoria=${c.slug}`}
+                    className="flex items-center gap-2 rounded-md px-3 py-2 font-medium text-ink-700 hover:bg-brand-50 hover:text-brand-700"
+                  >
+                    <span className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full bg-ink-50">
+                      {c.imageUrl && <Image src={c.imageUrl} alt="" fill sizes="24px" className="object-cover" />}
+                    </span>
+                    {c.name}
+                  </Link>
+                ))}
+              </div>
+            </NavDropdown>
+
+            <Link href="/" className="flex shrink-0 items-center rounded-md px-3 py-3 text-white/90 hover:text-white">
+              Início
             </Link>
 
-            <Link href="/loja" className="flex shrink-0 items-center rounded-md px-3 py-2 text-white/90 hover:text-white">
-              Todas as Peças
+            <Link href="/loja" className="flex shrink-0 items-center rounded-md px-3 py-3 text-white/90 hover:text-white">
+              Peças
             </Link>
 
-            <span className="my-2.5 h-4 w-px shrink-0 self-center bg-white/20" aria-hidden="true" />
-
-            <Link
-              href="/blog"
-              className="flex shrink-0 items-center gap-1.5 rounded-md px-3 py-2 text-white/90 hover:text-white"
-            >
-              <BookOpen size={14} />
-              Blog Técnico
-            </Link>
+            <NavDropdown label="Serviços" icon={<Wrench size={14} />} panelClassName="w-64">
+              <div className="flex flex-col gap-1">
+                <Link href="/servicos#aluguer" className="rounded-md px-3 py-2 font-medium text-ink-700 hover:bg-brand-50 hover:text-brand-700">
+                  Aluguer de Máquinas
+                </Link>
+                <Link href="/servicos#transporte" className="rounded-md px-3 py-2 font-medium text-ink-700 hover:bg-brand-50 hover:text-brand-700">
+                  Transporte de Máquinas
+                </Link>
+                <Link href="/servicos#manutencao" className="rounded-md px-3 py-2 font-medium text-ink-700 hover:bg-brand-50 hover:text-brand-700">
+                  Manutenção e Reparação
+                </Link>
+              </div>
+            </NavDropdown>
           </nav>
         </Container>
       </div>

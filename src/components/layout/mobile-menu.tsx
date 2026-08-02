@@ -53,6 +53,10 @@ export function MobileMenu({ categories }: { categories: CategoryNavData[] }) {
           </div>
 
           <nav className="flex-1 overflow-y-auto py-2">
+            <Link href="/" onClick={() => setOpen(false)} className="block px-5 py-2.5 text-sm font-semibold text-ink-900 hover:text-brand-600">
+              Início
+            </Link>
+
             <Link
               href="/marcas"
               onClick={() => setOpen(false)}
@@ -75,15 +79,26 @@ export function MobileMenu({ categories }: { categories: CategoryNavData[] }) {
               </Link>
             ))}
 
+            <p className="px-5 pt-4 pb-1 text-xs font-bold tracking-wide text-ink-400 uppercase">Serviços</p>
+            <Link href="/contacto" onClick={() => setOpen(false)} className="flex items-center justify-between px-5 py-2.5 text-sm text-ink-700 hover:bg-ink-50 hover:text-brand-600">
+              Aluguer de Máquinas
+              <ChevronRight size={15} className="text-ink-300" />
+            </Link>
+            <Link href="/contacto" onClick={() => setOpen(false)} className="flex items-center justify-between px-5 py-2.5 text-sm text-ink-700 hover:bg-ink-50 hover:text-brand-600">
+              Transporte de Máquinas
+              <ChevronRight size={15} className="text-ink-300" />
+            </Link>
+            <Link href="/contacto" onClick={() => setOpen(false)} className="flex items-center justify-between px-5 py-2.5 text-sm text-ink-700 hover:bg-ink-50 hover:text-brand-600">
+              Manutenção e Reparação
+              <ChevronRight size={15} className="text-ink-300" />
+            </Link>
+
             <div className="mt-3 border-t border-ink-100 px-5 pt-3">
               <Link href="/sobre" onClick={() => setOpen(false)} className="block py-2 text-sm text-ink-700 hover:text-brand-600">
                 Sobre Nós
               </Link>
               <Link href="/contacto" onClick={() => setOpen(false)} className="block py-2 text-sm text-ink-700 hover:text-brand-600">
                 Contacto
-              </Link>
-              <Link href="/blog" onClick={() => setOpen(false)} className="block py-2 text-sm text-ink-700 hover:text-brand-600">
-                Blog Técnico
               </Link>
               <Link href="/faq" onClick={() => setOpen(false)} className="block py-2 text-sm text-ink-700 hover:text-brand-600">
                 Perguntas Frequentes

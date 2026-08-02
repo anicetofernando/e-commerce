@@ -144,7 +144,7 @@ export function HeroCarousel() {
 
   return (
     <div
-      className="relative overflow-hidden bg-gradient-to-b from-white to-ink-50 pt-8 pb-14"
+      className="relative overflow-hidden bg-gradient-to-b from-white to-ink-50 pt-8 pb-8"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >

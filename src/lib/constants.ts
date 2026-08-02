@@ -61,12 +61,12 @@ export const ORDER_STATUS_STYLES: Record<OrderStatus, string> = {
 
 export const CONTACT_INFO = {
   companyName: "Albimaq, Lda",
-  phonePrimary: "+258 84 000 0000",
-  phoneSecondary: "+258 82 000 0000",
+  phonePrimary: "+258 84 222 7299",
+  phoneSecondary: "+258 87 797 0579",
   email: "vendas@albimaq.co.mz",
-  whatsapp: "+258 84 000 0000",
-  address: "Av. das Indústrias, Matola, Maputo, Moçambique",
-  hours: "Segunda a Sexta: 07h30 - 17h00 · Sábado: 08h00 - 13h00",
+  whatsapp: "+258 84 222 7299",
+  address: "E.N.6 (Auto Estrada) - Manga, Caixa Postal N° 51, 2100 Beira-Sofala, Moçambique",
+  hours: "Segunda a Sexta: 08h00 - 17h30 · Sábado: 08h00 - 13h00",
 };
 
 export const FREE_SHIPPING_THRESHOLD = 15000;

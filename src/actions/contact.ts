@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/db";
-import { contactSchema, newsletterSchema } from "@/lib/validation";
+import { contactSchema } from "@/lib/validation";
 import type { AuthFormState } from "@/actions/auth";
 
 export async function submitContactForm(_prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {

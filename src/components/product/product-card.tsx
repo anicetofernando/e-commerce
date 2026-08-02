@@ -4,6 +4,7 @@ import { Rating } from "@/components/ui/rating";
 import { Badge } from "@/components/ui/badge";
 import { AddToCartButton } from "@/components/product/add-to-cart-button";
 import { formatCurrency, cn } from "@/lib/utils";
+import { BRAND_LOGOS } from "@/lib/brand-logos";
 import type { ProductCardData } from "@/lib/types";
 
 export function ProductCard({ product, className }: { product: ProductCardData; className?: string }) {
@@ -12,6 +13,10 @@ export function ProductCard({ product, className }: { product: ProductCardData; 
     : null;
   const outOfStock = product.stockQuantity <= 0;
   const lowStock = !outOfStock && product.stockQuantity <= 5;
+  const brandLogos = product.brands
+    .map((b) => ({ ...b, logo: BRAND_LOGOS[b.slug] }))
+    .filter((b) => b.logo)
+    .slice(0, 2);
 
   return (
     <div
@@ -36,6 +41,19 @@ export function ProductCard({ product, className }: { product: ProductCardData; 
             <Badge tone="ink">{product.condition === "RECONDICIONADO" ? "Recondicionado" : "Usado"}</Badge>
           )}
         </div>
+        {brandLogos.length > 0 && (
+          <div className="absolute top-2.5 right-2.5 flex gap-1">
+            {brandLogos.map((b) => (
+              <span
+                key={b.slug}
+                title={b.name}
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-white p-1 shadow-sm ring-1 ring-ink-100"
+              >
+                <Image src={b.logo} alt={b.name} width={40} height={40} className="h-full w-full object-contain" />
+              </span>
+            ))}
+          </div>
+        )}
         {outOfStock && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/70">
             <Badge tone="red">Sem Stock</Badge>
@@ -67,7 +85,7 @@ export function ProductCard({ product, className }: { product: ProductCardData; 
         </div>
         {lowStock && <p className="mt-1 text-xs font-medium text-amber-600">Últimas {product.stockQuantity} unidades</p>}
 
-        <div className="mt-3">
+        <div className="mt-auto pt-3">
           <AddToCartButton
             product={{
               id: product.id,

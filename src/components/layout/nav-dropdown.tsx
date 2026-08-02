@@ -1,12 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { ChevronDown, LayoutGrid } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { CategoryNavData } from "@/lib/types";
 
-export function CategoriesMenu({ categories }: { categories: CategoryNavData[] }) {
+export function NavDropdown({
+  label,
+  icon,
+  buttonClassName,
+  panelClassName,
+  children,
+}: {
+  label: string;
+  icon: ReactNode;
+  buttonClassName?: string;
+  panelClassName?: string;
+  children: ReactNode;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -34,31 +44,25 @@ export function CategoriesMenu({ categories }: { categories: CategoryNavData[] }
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex h-full items-center gap-2 bg-white px-4 text-ink-900 hover:bg-ink-50"
+        className={cn(
+          "flex h-full items-center gap-1.5 rounded-md px-3 text-white/90 hover:bg-white/10 hover:text-white",
+          buttonClassName,
+        )}
       >
-        <LayoutGrid size={14} />
-        Categorias
+        {icon}
+        {label}
         <ChevronDown size={14} className={cn("transition-transform", open && "rotate-180")} />
       </button>
 
       <div
+        onClick={() => setOpen(false)}
         className={cn(
-          "absolute top-full left-0 z-50 mt-1 w-[520px] origin-top-left rounded-lg border border-ink-100 bg-white p-3 text-sm font-normal shadow-xl transition-all duration-150",
+          "absolute top-full left-0 z-50 mt-1 origin-top-left rounded-lg border border-ink-100 bg-white p-3 text-sm font-normal text-ink-700 shadow-xl transition-all duration-150",
+          panelClassName,
           open ? "visible scale-100 opacity-100" : "invisible scale-95 opacity-0",
         )}
       >
-        <div className="grid grid-cols-2 gap-1">
-          {categories.map((c) => (
-            <Link
-              key={c.id}
-              href={`/loja?categoria=${c.slug}`}
-              onClick={() => setOpen(false)}
-              className="rounded-md px-3 py-2 font-medium text-ink-700 hover:bg-brand-50 hover:text-brand-700"
-            >
-              {c.name}
-            </Link>
-          ))}
-        </div>
+        {children}
       </div>
     </div>
   );
