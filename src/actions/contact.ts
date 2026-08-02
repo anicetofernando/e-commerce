@@ -25,21 +25,3 @@ export async function submitContactForm(_prevState: AuthFormState, formData: For
 
   return { message: "Mensagem enviada com sucesso. A nossa equipa entrará em contacto em breve." };
 }
-
-export async function subscribeNewsletter(_prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
-  const validated = newsletterSchema.safeParse({ email: formData.get("email") });
-
-  if (!validated.success) {
-    return { errors: validated.error.flatten().fieldErrors };
-  }
-
-  const { email } = validated.data;
-
-  await prisma.newsletterSubscriber.upsert({
-    where: { email },
-    create: { email },
-    update: {},
-  });
-
-  return { message: "Subscrição efetuada com sucesso!" };
-}
