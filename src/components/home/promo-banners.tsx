@@ -1,21 +1,23 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Droplets, Filter } from "lucide-react";
 import { Container } from "@/components/ui/container";
 
 const PROMOS = [
   {
     title: "Sistema Hidráulico",
-    description: "Bombas, cilindros e mangueiras com stock permanente.",
+    badge: "Stock Permanente",
+    description: "Bombas, cilindros e mangueiras de alta pressão prontos a enviar.",
     href: "/loja?categoria=hidraulica",
-    image: "/images/hero/promo-hidraulica.svg",
-    light: true,
+    icon: Droplets,
+    gradient: "from-brand-500 to-brand-800",
   },
   {
     title: "Filtros Originais",
-    description: "Óleo, ar, combustível e hidráulicos para todas as marcas.",
+    badge: "Todas as Marcas",
+    description: "Óleo, ar, combustível e hidráulicos com compatibilidade garantida.",
     href: "/loja?categoria=filtros",
-    image: "/images/hero/promo-filtros.svg",
-    light: false,
+    icon: Filter,
+    gradient: "from-ink-800 to-ink-950",
   },
 ];
 
@@ -28,14 +30,21 @@ export function PromoBanners() {
             <Link
               key={promo.title}
               href={promo.href}
-              className="group relative flex min-h-48 flex-col justify-end overflow-hidden rounded-xl bg-cover bg-center p-7"
-              style={{ backgroundImage: `url('${promo.image}')` }}
+              className={`group relative flex min-h-56 flex-col justify-end overflow-hidden rounded-2xl bg-gradient-to-br p-8 ${promo.gradient}`}
             >
-              <div className="absolute inset-0 bg-gradient-to-t from-ink-950/80 to-transparent" />
+              <promo.icon
+                size={160}
+                strokeWidth={1}
+                className="pointer-events-none absolute -top-6 -right-6 text-white/10 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6"
+              />
+
               <div className="relative">
-                <h3 className="text-xl font-bold text-white">{promo.title}</h3>
-                <p className="mt-1 max-w-xs text-sm text-ink-200">{promo.description}</p>
-                <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-400 group-hover:text-brand-300">
+                <span className="inline-block rounded-full bg-white/15 px-3 py-1 text-xs font-bold tracking-wide text-white uppercase backdrop-blur-sm">
+                  {promo.badge}
+                </span>
+                <h3 className="mt-3 text-2xl font-black text-white">{promo.title}</h3>
+                <p className="mt-1.5 max-w-xs text-sm text-white/80">{promo.description}</p>
+                <span className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-bold text-ink-900 shadow-lg transition-transform group-hover:translate-x-1">
                   Ver produtos <ArrowRight size={15} />
                 </span>
               </div>
