@@ -33,7 +33,16 @@
 .ov-plainnum,
 .ov-cell,
 .ov-row {
-  font-family: "Segoe UI", Verdana, Arial, sans-serif;
+  /* Arial (not "Segoe UI", which every Windows browser has installed and
+     therefore always picked first) — the source sheet's own typeface is
+     Arial/Helvetica-family, and matching it here is what makes an edited
+     field's live text sit flush with the printed original around it,
+     instead of visibly switching typeface the moment a cell is touched.
+     !important because Tailwind's preflight resets input/textarea/select
+     to font-family:inherit (from the app's global Geist font) with a
+     plain element selector — normally weaker than a class selector, but
+     it still won here, so this makes sure it can't again. */
+  font-family: Arial, Helvetica, sans-serif !important;
   font-size: 1.72cqw;
   font-weight: 400;
 }
@@ -217,7 +226,6 @@ input.ov-plainnum.dirty {
   border: none;
   background: transparent;
   padding: 0;
-  font-weight: 600;
   caret-color: #1c1c1c;
 }
 
