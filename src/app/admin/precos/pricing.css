@@ -68,6 +68,7 @@ input.ov-plainnum {
 .ov-cell .com,
 .ov-cell .total,
 .ov-cell .ov-unit,
+.ov-cell .labor-money,
 .ov-row .ov-unit,
 .ov-row-val {
   color: transparent;
@@ -92,10 +93,12 @@ input.ov-plainnum.dirty {
 .ov-cell:focus-within .total,
 .ov-cell:focus-within .ov-unit,
 .ov-cell:focus-within .sem,
+.ov-cell:focus-within .labor-money,
 .ov-cell.dirty .com,
 .ov-cell.dirty .total,
 .ov-cell.dirty .ov-unit,
 .ov-cell.dirty .sem,
+.ov-cell.dirty .labor-money,
 .ov-row:focus-within .ov-unit,
 .ov-row:focus-within .ov-row-val,
 .ov-row:focus-within .labor-money,
@@ -131,6 +134,18 @@ input.ov-plainnum.dirty {
 .ov-unit {
   white-space: nowrap;
   flex: none;
+}
+/* Labor row values are right-aligned in the original (unlike the
+   equipment table's centered sem/com/total), so this overrides .ov-cell's
+   default centering — same box model, just a different justify-content. */
+.ov-val-cell {
+  justify-content: flex-end;
+}
+/* The accent/divider/separator lines redrawn on top of every labor field —
+   see renderLaborTable's vLine/hLine. Must never intercept clicks meant
+   for the field underneath. */
+.ov-gridline {
+  pointer-events: none;
 }
 .ov-total-cell {
   flex-direction: column;

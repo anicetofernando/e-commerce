@@ -106,8 +106,16 @@ function markDirty(el: HTMLInputElement) {
 // Toneladas)". Without this, that text just runs past the row's edge and
 // gets clipped. Shrinking it to fit is the same trick recalcRow already
 // uses for a wider recalculated total.
+//
+// A label input's own width IS its true box (set directly from lbFieldRects
+// in pricing-render.ts), so it's its own container. A money input isn't —
+// its CSS width is a fixed em-based guess, not the precisely measured value
+// box — so it has to be measured against its wrapping .ov-cell instead,
+// which is that true box; shrinking the input's font-size still shrinks its
+// own em-based width in step, so this still converges correctly.
 function fitLaborField(el: HTMLElement) {
-  fitToContainer(el, el);
+  const container = el.classList.contains("labor-money") ? (el.closest(".ov-cell") ?? el) : el;
+  fitToContainer(container, el);
 }
 
 function fitAllLaborFields(root: ParentNode) {

@@ -5,7 +5,9 @@ import {
   pct,
   rgb,
   eqBoxRect,
-  lbBoxRect,
+  lbFieldRects,
+  lbRowOffset,
+  lbTotalHeight,
   EQ_ROW_BG,
   EQ_GROUPS,
   EQ_NODIESEL,
@@ -20,6 +22,14 @@ import {
   LB_ROW_BG_PAIR2_LEFT,
   LB_ROW_BG_PAIR2_RIGHT,
   LB_TIRE_ROW_H,
+  LB_ACCENT_X_LEFT,
+  LB_ACCENT_X_RIGHT,
+  LB_DIVIDER_X,
+  LB_GRID_COLOR,
+  LB_HLINE_LEFT_X1,
+  LB_HLINE_RIGHT_X0,
+  LB_SEPARATOR_COLOR,
+  type BoxRect,
   type LbRowHeights,
   type EquipmentTableConfig,
   type LaborTableConfig,
@@ -158,9 +168,25 @@ ${html.join("\n")}
 export function renderLaborTable(config: LaborTableConfig, overrides: Record<string, string>): string {
   const prefix = config.prefix;
 
-  function lbStyle(top0: number, rowH: LbRowHeights, rowIdx: number, col: "left" | "right", bg: string): string {
-    const r = lbBoxRect(top0, rowH, rowIdx, col);
+  function fieldStyle(r: BoxRect, bg: string): string {
     return `left:${pct(r.left, IMG_W)}%;top:${pct(r.top, IMG_H)}%;width:${pct(r.width, IMG_W)}%;height:${pct(r.height, IMG_H)}%;--cellbg:${bg};`;
+  }
+
+  // A thin colored bar, positioned exactly like a field but with a fixed
+  // (non-scaling) pixel thickness — a percentage thickness would round to
+  // sub-pixel and vanish at typical container widths. Deliberately drawn
+  // AFTER every field below, in DOM order, so it paints on top and stays
+  // visible however that field is filled — the same fix already applied to
+  // the PDF export (drawLaborGrid), needed here for the same reason: a
+  // dirty/focused field's opaque background would otherwise erase whatever
+  // the source photo shows underneath it, line included.
+  function vLine(x: number, top: number, bottom: number): string {
+    const style = `left:${pct(x, IMG_W)}%;top:${pct(top, IMG_H)}%;width:1px;height:${pct(bottom - top, IMG_H)}%;background:${rgb(LB_GRID_COLOR)};`;
+    return `<div class="ov ov-gridline" style="${style}"></div>`;
+  }
+  function hLine(x0: number, x1: number, y: number): string {
+    const style = `left:${pct(x0, IMG_W)}%;top:${pct(y, IMG_H)}%;width:${pct(x1 - x0, IMG_W)}%;height:1px;background:${rgb(LB_SEPARATOR_COLOR)};`;
+    return `<div class="ov ov-gridline" style="${style}"></div>`;
   }
 
   function block(
@@ -170,17 +196,40 @@ export function renderLaborTable(config: LaborTableConfig, overrides: Record<str
     col: "left" | "right",
     bgList: string | string[],
   ): string {
-    return config.blocks[name]
+    const rowCount = config.blocks[name].length;
+
+    const fields = config.blocks[name]
       .map((item, i) => {
         const bg = Array.isArray(bgList) ? bgList[i] : bgList;
         const lblKey = `${prefix}-${name}-${i}-lbl`;
         const valKey = `${prefix}-${name}-${i}-val`;
         const lblVal = overrides[lblKey] ?? item.label;
         const valVal = overrides[valKey] ?? item.value;
-        const dirty = lblVal !== item.label || valVal !== item.value;
-        return `      <div class="ov ov-row${dirty ? " dirty" : ""}" style="${lbStyle(top0, rowH, i, col, bg)}"><input class="ov-text lbl-input" name="${lblKey}" value="${esc(lblVal)}" data-orig="${esc(item.label)}"><span class="ov-row-val"><input class="money-input labor-money" name="${valKey}" value="${esc(valVal)}" data-orig="${esc(item.value)}"><span class="ov-unit">${esc(config.unit)}</span></span></div>`;
+        // Tracked independently — editing the value must never make the
+        // label (re)paint, and vice versa; they used to share one dirty
+        // flag on a common wrapper, so touching either one revealed BOTH,
+        // each at its own (previously wrong) position.
+        const lblDirty = lblVal !== item.label;
+        const valDirty = valVal !== item.value;
+        const { lblRect, valRect } = lbFieldRects(top0, rowH, i, col, name);
+        const lbl = `<input class="ov ov-text lbl-input${lblDirty ? " dirty" : ""}" style="${fieldStyle(lblRect, bg)}" name="${lblKey}" value="${esc(lblVal)}" data-orig="${esc(item.label)}">`;
+        const val = `<div class="ov ov-cell ov-val-cell${valDirty ? " dirty" : ""}" style="${fieldStyle(valRect, bg)}"><input class="money-input labor-money" name="${valKey}" value="${esc(valVal)}" data-orig="${esc(item.value)}"><span class="ov-unit">${esc(config.unit)}</span></div>`;
+        return `${lbl}\n${val}`;
       })
       .join("\n");
+
+    const accentX = col === "left" ? LB_ACCENT_X_LEFT : LB_ACCENT_X_RIGHT;
+    const dividerX = LB_DIVIDER_X[name];
+    const top = top0;
+    const bottom = top0 + lbTotalHeight(rowH, rowCount);
+    const hlineX0 = col === "left" ? accentX : LB_HLINE_RIGHT_X0;
+    const hlineX1 = col === "left" ? LB_HLINE_LEFT_X1 : accentX;
+    const lines: string[] = [vLine(accentX, top, bottom), vLine(dividerX, top, bottom)];
+    for (let i = 1; i < rowCount; i++) {
+      lines.push(hLine(hlineX0, hlineX1, top0 + lbRowOffset(rowH, i)));
+    }
+
+    return `${fields}\n${lines.join("\n")}`;
   }
 
   const rows = [

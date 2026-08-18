@@ -51,6 +51,36 @@ export function lbBoxRect(top0: number, rowH: LbRowHeights, rowIdx: number, col:
   return { left, top, width, height };
 }
 
+/** Where a labor row's label and value text actually sit — the TRUE divider
+ * position (LB_DIVIDER_X, measured against the source photo) and the
+ * accent-line gutter on the outer edge, not the row's own full width. Used
+ * by the on-screen overlay so a field's rendered position always matches
+ * the printed original, dirty or not — mirrors the same geometry the PDF
+ * export already uses (kept as a separate copy here deliberately: the PDF
+ * code is intentionally left untouched). */
+export function lbFieldRects(
+  top0: number,
+  rowH: LbRowHeights,
+  rowIdx: number,
+  col: "left" | "right",
+  name: "labor" | "tire" | "extra" | "forklift",
+): { lblRect: BoxRect; valRect: BoxRect } {
+  const rect = lbBoxRect(top0, rowH, rowIdx, col);
+  const lblFullRect: BoxRect = { ...rect, width: rect.width * 0.6 };
+  const valFullRect: BoxRect = { ...rect, left: rect.left + rect.width * 0.6, width: rect.width * 0.4 };
+  const gap = 20;
+  const dividerX = LB_DIVIDER_X[name];
+  const lblRect: BoxRect =
+    col === "left"
+      ? { ...lblFullRect, left: LB_LABEL_X0_LEFT, width: dividerX - gap - LB_LABEL_X0_LEFT }
+      : { ...lblFullRect, width: dividerX - gap - rect.left };
+  const valRect: BoxRect =
+    col === "left"
+      ? { ...valFullRect, left: dividerX + gap, width: rect.left + rect.width - (dividerX + gap) }
+      : { ...valFullRect, left: dividerX + gap, width: LB_VALUE_X1_RIGHT - (dividerX + gap) };
+  return { lblRect, valRect };
+}
+
 export type RGB = [number, number, number];
 export function rgb([r, g, b]: RGB): string {
   const h = (n: number) => n.toString(16).padStart(2, "0").toUpperCase();
