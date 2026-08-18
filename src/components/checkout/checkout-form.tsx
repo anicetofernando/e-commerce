@@ -112,6 +112,12 @@ export function CheckoutForm({
     }
 
     clearCart();
+
+    if (result.redirectUrl) {
+      window.location.href = result.redirectUrl;
+      return;
+    }
+
     router.push(`/checkout/confirmacao/${result.orderNumber}`);
   }
 
@@ -211,8 +217,8 @@ export function CheckoutForm({
             ))}
           </div>
           <p className="mt-3 text-xs text-ink-500">
-            Após a confirmação, a nossa equipa entrará em contacto com os detalhes de pagamento para
-            transferência bancária, M-Pesa ou e-Mola.
+            Para transferência bancária, M-Pesa, e-Mola ou numerário na entrega, a nossa equipa entrará em
+            contacto com os detalhes de pagamento. O cartão internacional é processado de imediato.
           </p>
         </div>
       </div>

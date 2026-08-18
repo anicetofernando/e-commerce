@@ -12,6 +12,8 @@ export async function updateOrderStatus(id: string, _prevState: AuthFormState, f
   const validated = adminOrderUpdateSchema.safeParse({
     status: formData.get("status"),
     paymentStatus: formData.get("paymentStatus"),
+    trackingNumber: formData.get("trackingNumber") || "",
+    carrier: formData.get("carrier") || "",
   });
   if (!validated.success) {
     return { errors: validated.error.flatten().fieldErrors };
@@ -19,7 +21,7 @@ export async function updateOrderStatus(id: string, _prevState: AuthFormState, f
 
   const current = await prisma.order.findUnique({
     where: { id },
-    select: { status: true, items: { select: { productId: true, quantity: true } } },
+    select: { status: true, couponCode: true, items: { select: { productId: true, quantity: true } } },
   });
   if (!current) {
     return { message: "Encomenda não encontrada." };
@@ -29,18 +31,35 @@ export async function updateOrderStatus(id: string, _prevState: AuthFormState, f
   const leavingCancelled = current.status === "CANCELADA" && validated.data.status !== "CANCELADA";
 
   await prisma.$transaction(async (tx) => {
-    await tx.order.update({ where: { id }, data: validated.data });
+    await tx.order.update({
+      where: { id },
+      data: {
+        status: validated.data.status,
+        paymentStatus: validated.data.paymentStatus,
+        trackingNumber: validated.data.trackingNumber || null,
+        carrier: validated.data.carrier || null,
+      },
+    });
 
     if (enteringCancelled || leavingCancelled) {
-      // Cancelling releases reserved stock back to inventory; reversing a
-      // cancellation reserves it again (skipping items whose product was
-      // since deleted).
+      // Cancelling releases reserved stock (and the coupon's usage count)
+      // back to inventory; reversing a cancellation reserves both again
+      // (skipping items whose product was since deleted).
       const delta = enteringCancelled ? 1 : -1;
       for (const item of current.items) {
         if (!item.productId) continue;
         await tx.product.update({
           where: { id: item.productId },
           data: { stockQuantity: { increment: item.quantity * delta } },
+        });
+      }
+
+      if (current.couponCode) {
+        // updateMany (not update) so a coupon deleted after the order was
+        // placed doesn't turn a status change into a crash.
+        await tx.coupon.updateMany({
+          where: { code: current.couponCode },
+          data: { usedCount: { increment: -1 * delta } },
         });
       }
     }

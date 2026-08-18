@@ -12,6 +12,19 @@ function layout(title: string, bodyHtml: string) {
   `;
 }
 
+export function emailVerificationEmail(verifyUrl: string) {
+  return layout(
+    "Confirme o seu Email",
+    `
+      <p>Obrigado por criar uma conta na ${CONTACT_INFO.companyName}. Confirme o seu email para ativar todas as funcionalidades da sua conta:</p>
+      <p style="margin: 24px 0;">
+        <a href="${verifyUrl}" style="background:#dc2626;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:bold;">Confirmar Email</a>
+      </p>
+      <p>Se não criou esta conta, pode ignorar este email.</p>
+    `,
+  );
+}
+
 export function passwordResetEmail(resetUrl: string) {
   return layout(
     "Recuperação de Palavra-passe",

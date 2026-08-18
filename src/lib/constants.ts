@@ -45,6 +45,7 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   MPESA: "M-Pesa",
   EMOLA: "e-Mola",
   NUMERARIO_NA_ENTREGA: "Numerário na Entrega",
+  CARTAO: "Cartão Internacional (Débito/Crédito)",
 };
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {

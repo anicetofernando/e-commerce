@@ -15,13 +15,17 @@ export function getSiteUrl() {
  */
 export async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
   if (!resend) {
-    console.warn(`[email] RESEND_API_KEY não definido — email para "${to}" não enviado. Assunto: ${subject}`);
+    // Logging the body (not just the subject) means links inside it — e.g.
+    // password reset, email verification — are still reachable in local dev
+    // without a Resend key configured.
+    console.warn(`[email] RESEND_API_KEY não definido — email para "${to}" não enviado. Assunto: ${subject}\n${html}`);
     return { skipped: true };
   }
 
   try {
     await resend.emails.send({
       from: process.env.EMAIL_FROM ?? `${CONTACT_INFO.companyName} <onboarding@resend.dev>`,
+      replyTo: "info@albimaq.co.mz",
       to,
       subject,
       html,

@@ -11,6 +11,8 @@ type OrderWithItems = Omit<Order, "subtotal" | "shippingCost" | "discountAmount"
   province: Province;
   status: OrderStatus;
   paymentMethod: PaymentMethod;
+  trackingNumber?: string | null;
+  carrier?: string | null;
   items: (Omit<OrderItem, "unitPrice" | "lineTotal"> & { unitPrice: number; lineTotal: number })[];
 };
 
@@ -75,6 +77,15 @@ export function OrderSummaryCard({ order }: { order: OrderWithItems }) {
           <p className="mb-1 text-xs font-bold tracking-wide text-ink-400 uppercase">Pagamento</p>
           <p className="text-sm text-ink-700">{PAYMENT_METHOD_LABELS[order.paymentMethod]}</p>
         </div>
+        {order.trackingNumber && (
+          <div>
+            <p className="mb-1 text-xs font-bold tracking-wide text-ink-400 uppercase">Rastreio</p>
+            <p className="text-sm text-ink-700">
+              {order.trackingNumber}
+              {order.carrier ? ` (${order.carrier})` : ""}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

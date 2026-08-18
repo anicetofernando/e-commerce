@@ -45,8 +45,9 @@ export default async function TermsPage() {
           <h2 className="mb-2 text-lg font-bold text-ink-900">4. Preços e Pagamento</h2>
           <p>
             Todos os preços apresentados estão expressos em Meticais (MZN) e podem ser alterados sem aviso
-            prévio. O pagamento pode ser efetuado por transferência bancária, M-Pesa, e-Mola ou numerário na
-            entrega, conforme disponibilidade e confirmação da encomenda.
+            prévio. O pagamento pode ser efetuado por transferência bancária, M-Pesa, e-Mola, numerário na
+            entrega ou cartão internacional de débito/crédito, conforme disponibilidade e confirmação da
+            encomenda. O pagamento por cartão internacional é processado em USD, à taxa de câmbio em vigor.
           </p>
         </section>
 

@@ -17,6 +17,7 @@ export async function updateSiteSettings(_prevState: AuthFormState, formData: Fo
     email: formData.get("email"),
     address: formData.get("address"),
     hours: formData.get("hours"),
+    usdExchangeRate: formData.get("usdExchangeRate"),
   });
   if (!validated.success) {
     return { errors: validated.error.flatten().fieldErrors };
@@ -34,6 +35,7 @@ export async function updateSiteSettings(_prevState: AuthFormState, formData: Fo
       email: data.email,
       address: data.address,
       hours: data.hours,
+      usdExchangeRate: data.usdExchangeRate,
     },
     update: {
       companyName: data.companyName,
@@ -43,6 +45,7 @@ export async function updateSiteSettings(_prevState: AuthFormState, formData: Fo
       email: data.email,
       address: data.address,
       hours: data.hours,
+      usdExchangeRate: data.usdExchangeRate,
     },
   });
 

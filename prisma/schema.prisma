@@ -31,18 +31,20 @@ enum Province {
 }
 
 model User {
-  id                   String    @id @default(cuid())
-  name                 String
-  email                String    @unique
-  passwordHash         String
-  phone                String?
-  company              String?
-  taxId                String?
-  role                 Role      @default(CUSTOMER)
-  resetToken           String?   @unique
-  resetTokenExpiresAt  DateTime?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  id                        String    @id @default(cuid())
+  name                      String
+  email                     String    @unique
+  passwordHash              String
+  phone                     String?
+  company                   String?
+  taxId                     String?
+  role                      Role      @default(CUSTOMER)
+  resetToken                String?   @unique
+  resetTokenExpiresAt       DateTime?
+  emailVerified             Boolean   @default(false)
+  emailVerificationToken    String?   @unique
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
 
   addresses Address[]
   orders    Order[]
@@ -250,6 +252,7 @@ enum PaymentMethod {
   MPESA
   EMOLA
   NUMERARIO_NA_ENTREGA
+  CARTAO
 }
 
 enum PaymentStatus {
@@ -285,6 +288,12 @@ model Order {
   shippingCost Decimal @default(0) @db.Decimal(12, 2)
   total        Decimal @db.Decimal(12, 2)
   currency     String  @default("MZN")
+
+  stripeSessionId       String? @unique
+  stripePaymentIntentId String?
+
+  trackingNumber String?
+  carrier        String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -411,6 +420,9 @@ model SiteSettings {
   email          String
   address        String
   hours          String
+  // MZN per 1 USD, used to convert order totals for the international card
+  // (Stripe) checkout — Stripe does not settle in MZN.
+  usdExchangeRate Decimal @default(64) @db.Decimal(10, 4)
   updatedAt      DateTime @updatedAt
 }
 

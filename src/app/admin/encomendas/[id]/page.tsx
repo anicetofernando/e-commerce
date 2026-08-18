@@ -146,7 +146,13 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
           <div className="rounded-xl border border-ink-100 bg-white p-5">
             <h2 className="mb-4 text-sm font-bold text-ink-900 uppercase">Atualizar Estado</h2>
-            <OrderStatusForm orderId={order.id} status={order.status} paymentStatus={order.paymentStatus} />
+            <OrderStatusForm
+              orderId={order.id}
+              status={order.status}
+              paymentStatus={order.paymentStatus}
+              trackingNumber={order.trackingNumber}
+              carrier={order.carrier}
+            />
           </div>
         </div>
       </div>

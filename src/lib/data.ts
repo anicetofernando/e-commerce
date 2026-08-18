@@ -283,7 +283,7 @@ export async function getUserOrders(userId: string) {
 
 export async function getSiteSettings() {
   const settings = await prisma.siteSettings.findUnique({ where: { id: "singleton" } });
-  if (settings) return settings;
+  if (settings) return { ...settings, usdExchangeRate: Number(settings.usdExchangeRate) };
 
   return {
     id: "singleton",
@@ -294,6 +294,7 @@ export async function getSiteSettings() {
     email: CONTACT_INFO.email,
     address: CONTACT_INFO.address,
     hours: CONTACT_INFO.hours,
+    usdExchangeRate: 64,
     updatedAt: new Date(),
   };
 }

@@ -174,6 +174,8 @@ export type AdminCouponInput = z.infer<typeof adminCouponSchema>;
 export const adminOrderUpdateSchema = z.object({
   status: z.enum(OrderStatus),
   paymentStatus: z.enum(PaymentStatus),
+  trackingNumber: z.string().trim().optional().or(z.literal("")),
+  carrier: z.string().trim().optional().or(z.literal("")),
 });
 
 export type AdminOrderUpdateInput = z.infer<typeof adminOrderUpdateSchema>;
@@ -256,6 +258,7 @@ export const adminSiteSettingsSchema = z.object({
   email: z.email("Introduza um email válido.").trim(),
   address: z.string().trim().min(5, "Introduza a morada."),
   hours: z.string().trim().min(5, "Introduza o horário."),
+  usdExchangeRate: z.coerce.number().positive("A taxa de câmbio deve ser maior que zero."),
 });
 
 export type AdminSiteSettingsInput = z.infer<typeof adminSiteSettingsSchema>;
