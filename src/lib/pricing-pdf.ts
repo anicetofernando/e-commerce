@@ -138,32 +138,25 @@ function drawField(
   page.drawText(text, { x, y, size, font, color: INK });
 }
 
-/** The original's two longest labor labels ("Sunday/Holiday Rate (by
- * technician)", "Travel fee within from the city of Beira") wrap onto a
- * second line rather than shrinking — every other label on the sheet is
- * the same size. drawField's single-line shrink-to-fit doesn't replicate
- * that, so long labels came out tiny instead of wrapped. Tries the single
- * line at the table's normal size first; if it doesn't fit, greedily
- * word-wraps into two lines at that same size; only falls back to
- * shrinking if even two lines can't fit the row. */
-function drawWrappedLabel(page: PDFPage, font: PDFFont, text: string, rect: BoxRect, bg: RGB, padding = 4) {
-  const r = toPdfRect(rect);
-  page.drawRectangle({ x: r.x, y: r.y, width: r.width, height: r.height, color: rgb(bg[0] / 255, bg[1] / 255, bg[2] / 255) });
-  if (!text) return;
-  const maxWidth = Math.max(1, r.width - padding * 2);
+type LabelPlan = { lines: string[]; naturalSize: number };
 
+/** Works out how a label should be laid out — one line, or word-wrapped
+ * into two — and the largest size at which that layout fits its box,
+ * without drawing anything. Every label and value on a labor page gets
+ * planned this way first; drawLaborPage then draws all of them at the
+ * single smallest naturalSize found on the page, so no field ends up a
+ * different size from its neighbours (the previous per-field shrink-to-fit
+ * let the tire column and the two longest labels land at visibly different
+ * sizes from the rest of the table). */
+function planLabel(font: PDFFont, text: string, maxWidth: number, rowHeight: number): LabelPlan {
+  if (!text) return { lines: [], naturalSize: BASE_SIZE };
   if (font.widthOfTextAtSize(text, BASE_SIZE) <= maxWidth) {
-    const y = r.y + (r.height - BASE_SIZE) / 2 + BASE_SIZE * 0.21;
-    page.drawText(text, { x: r.x + padding, y, size: BASE_SIZE, font, color: INK });
-    return;
+    return { lines: [text], naturalSize: BASE_SIZE };
   }
 
   const words = text.split(" ");
   if (words.length < 2) {
-    const size = fitSize(font, text, maxWidth, BASE_SIZE);
-    const y = r.y + (r.height - size) / 2 + size * 0.21;
-    page.drawText(text, { x: r.x + padding, y, size, font, color: INK });
-    return;
+    return { lines: [text], naturalSize: fitSize(font, text, maxWidth, BASE_SIZE) };
   }
 
   // Picks whichever split point makes the WIDER of the two lines as narrow
@@ -188,18 +181,42 @@ function drawWrappedLabel(page: PDFPage, font: PDFFont, text: string, rect: BoxR
 
   const lineMult = 1.02;
   const size = Math.min(BASE_SIZE, (BASE_SIZE * maxWidth) / widestLine);
+  if (size * lineMult * 2 > rowHeight) {
+    return { lines: [text], naturalSize: fitSize(font, text, maxWidth, BASE_SIZE) };
+  }
+  return { lines: [line1, line2], naturalSize: size };
+}
 
-  if (size * lineMult * 2 > r.height) {
-    const fallbackSize = fitSize(font, text, maxWidth, BASE_SIZE);
-    const y = r.y + (r.height - fallbackSize) / 2 + fallbackSize * 0.21;
-    page.drawText(text, { x: r.x + padding, y, size: fallbackSize, font, color: INK });
+/** Draws a planned label's line(s) at a caller-supplied size — not
+ * necessarily the plan's own naturalSize, since drawLaborPage draws every
+ * field on the page at one shared size (see planLabel). */
+function drawLabelLines(page: PDFPage, font: PDFFont, lines: string[], rect: BoxRect, size: number, padding = 4) {
+  if (lines.length === 0) return;
+  const r = toPdfRect(rect);
+  if (lines.length === 1) {
+    const y = r.y + (r.height - size) / 2 + size * 0.21;
+    page.drawText(lines[0], { x: r.x + padding, y, size, font, color: INK });
     return;
   }
-
+  const lineMult = 1.02;
   const lineH = size * lineMult;
   const blockBottom = r.y + (r.height - lineH * 2) / 2;
-  page.drawText(line1, { x: r.x + padding, y: blockBottom + lineH + size * 0.21, size, font, color: INK });
-  page.drawText(line2, { x: r.x + padding, y: blockBottom + size * 0.21, size, font, color: INK });
+  page.drawText(lines[0], { x: r.x + padding, y: blockBottom + lineH + size * 0.21, size, font, color: INK });
+  page.drawText(lines[1], { x: r.x + padding, y: blockBottom + size * 0.21, size, font, color: INK });
+}
+
+/** Draws single-line text at a caller-supplied fixed size (see
+ * drawLabelLines) instead of computing its own shrink-to-fit. */
+function drawTextSized(page: PDFPage, font: PDFFont, text: string, rect: BoxRect, align: "left" | "center" | "right", size: number, padding = 4) {
+  if (!text) return;
+  const r = toPdfRect(rect);
+  const textWidth = font.widthOfTextAtSize(text, size);
+  let x: number;
+  if (align === "left") x = r.x + padding;
+  else if (align === "right") x = r.x + r.width - padding - textWidth;
+  else x = r.x + (r.width - textWidth) / 2;
+  const y = r.y + (r.height - size) / 2 + size * 0.21;
+  page.drawText(text, { x, y, size, font, color: INK });
 }
 
 /** The Total cell doubles as the câmbio conversion display: once an admin
@@ -358,8 +375,13 @@ function drawLaborGrid(page: PDFPage, top0: number, rowH: LbRowHeights, rowCount
   }
 }
 
+type FieldPlan =
+  | { kind: "label"; rect: BoxRect; lines: string[]; naturalSize: number }
+  | { kind: "value"; rect: BoxRect; text: string; naturalSize: number };
+
 function drawLaborPage(page: PDFPage, config: LaborTableConfig, overrides: Record<string, string>, font: PDFFont) {
   const prefix = config.prefix;
+  const plans: FieldPlan[] = [];
 
   function block(
     name: "labor" | "tire" | "extra" | "forklift",
@@ -398,8 +420,15 @@ function drawLaborPage(page: PDFPage, config: LaborTableConfig, overrides: Recor
         col === "left"
           ? { ...valFullRect, left: dividerX + gap, width: rect.left + rect.width - (dividerX + gap) }
           : { ...valFullRect, left: dividerX + gap, width: LB_VALUE_X1_RIGHT - (dividerX + gap) };
-      drawWrappedLabel(page, font, lblVal, lblTextRect, bg);
-      drawField(page, font, `${valVal} ${config.unit}`, valTextRect, "right", bg);
+
+      const lblR = toPdfRect(lblTextRect);
+      const lblPlan = planLabel(font, lblVal, Math.max(1, lblR.width - 8), lblR.height);
+      plans.push({ kind: "label", rect: lblTextRect, lines: lblPlan.lines, naturalSize: lblPlan.naturalSize });
+
+      const valText = `${valVal} ${config.unit}`;
+      const valR = toPdfRect(valTextRect);
+      const valNaturalSize = valText ? fitSize(font, valText, Math.max(1, valR.width - 8), BASE_SIZE) : BASE_SIZE;
+      plans.push({ kind: "value", rect: valTextRect, text: valText, naturalSize: valNaturalSize });
     });
     drawLaborGrid(page, top0, rowH, config.blocks[name].length, col, LB_DIVIDER_X[name]);
   }
@@ -410,6 +439,18 @@ function drawLaborPage(page: PDFPage, config: LaborTableConfig, overrides: Recor
   block("tire", LB_PAIR1_TOP, LB_TIRE_ROW_H, "right", LB_ROW_BG_PAIR1);
   block("extra", LB_PAIR2_TOP, LB_PAIR2_ROW_H, "left", LB_ROW_BG_PAIR2_LEFT);
   block("forklift", LB_PAIR2_RIGHT_TOP, LB_PAIR2_RIGHT_ROW_H, "right", LB_ROW_BG_PAIR2_RIGHT);
+
+  // Every label and value on the page is drawn at the SAME size — the
+  // smallest any single field on this page actually needs — so nothing on
+  // the sheet ends up bigger or smaller than anything else (the previous
+  // per-field shrink-to-fit let the tire column, in particular, land
+  // visibly smaller than the labor column beside it).
+  const sharedSize = plans.reduce((min, p) => Math.min(min, p.naturalSize), BASE_SIZE);
+
+  for (const p of plans) {
+    if (p.kind === "label") drawLabelLines(page, font, p.lines, p.rect, sharedSize);
+    else drawTextSized(page, font, p.text, p.rect, "right", sharedSize);
+  }
 }
 
 export async function generatePricingPdf(
