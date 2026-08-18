@@ -60,7 +60,10 @@ const SX = PAGE_W / IMG_W;
 const SY = PAGE_H / IMG_H;
 const INK = rgb(28 / 255, 28 / 255, 28 / 255);
 const MZN_INK = rgb(122 / 255, 74 / 255, 31 / 255);
-const BASE_SIZE = 14.5;
+// Fixed target size for every field on every page (equipment and labor
+// alike) — not a per-field or per-page shrink-to-fit ceiling. A field only
+// ever goes below this if its own content genuinely cannot fit at 12pt.
+const BASE_SIZE = 12;
 const MIN_SIZE = 6;
 
 function toPdfRect(r: BoxRect) {
@@ -440,16 +443,13 @@ function drawLaborPage(page: PDFPage, config: LaborTableConfig, overrides: Recor
   block("extra", LB_PAIR2_TOP, LB_PAIR2_ROW_H, "left", LB_ROW_BG_PAIR2_LEFT);
   block("forklift", LB_PAIR2_RIGHT_TOP, LB_PAIR2_RIGHT_ROW_H, "right", LB_ROW_BG_PAIR2_RIGHT);
 
-  // Every label and value on the page is drawn at the SAME size — the
-  // smallest any single field on this page actually needs — so nothing on
-  // the sheet ends up bigger or smaller than anything else (the previous
-  // per-field shrink-to-fit let the tire column, in particular, land
-  // visibly smaller than the labor column beside it).
-  const sharedSize = plans.reduce((min, p) => Math.min(min, p.naturalSize), BASE_SIZE);
-
+  // Every field targets BASE_SIZE (12pt, same as the equipment pages) and
+  // only drops below it if its own content genuinely can't fit at 12 — a
+  // couple of the widest tire/forklift values, not a page-wide shared
+  // minimum that would otherwise drag every other field down to match.
   for (const p of plans) {
-    if (p.kind === "label") drawLabelLines(page, font, p.lines, p.rect, sharedSize);
-    else drawTextSized(page, font, p.text, p.rect, "right", sharedSize);
+    if (p.kind === "label") drawLabelLines(page, font, p.lines, p.rect, p.naturalSize);
+    else drawTextSized(page, font, p.text, p.rect, "right", p.naturalSize);
   }
 }
 
