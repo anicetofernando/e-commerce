@@ -48,7 +48,9 @@ export const EQ_COLS = [30, 595, 988, 1135, 1331, 1712, 2093, 2486];
 // Values pixel-measured directly from the source photo (native 2526×1786).
 export const EQ_GRID_COLOR: RGB = [204, 118, 57];
 export const EQ_GRID_V_X = [604, 1011, 1111, 1288, 1659, 2038];
-export const EQ_GRID_THICKNESS = 2.2;
+// Measured ~2-3px at native 2526px width; scaled to the 841.89pt PDF page
+// that's under 1pt (2526/841.89 ≈ 3× — a 2.2pt line was roughly 3× too bold).
+export const EQ_GRID_THICKNESS = 0.75;
 
 export const EQ_ROW_BG: RGB[] = [
   [226, 226, 226], [230, 230, 230], [230, 230, 230], [230, 230, 230],
