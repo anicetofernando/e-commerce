@@ -19,7 +19,12 @@ export function LoginForm() {
       </div>
 
       <div>
-        <Label htmlFor="password">Palavra-passe</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="password">Palavra-passe</Label>
+          <Link href="/recuperar-senha" className="mb-1.5 text-xs font-medium text-brand-600 hover:underline">
+            Esqueceu-se da password?
+          </Link>
+        </div>
         <Input id="password" name="password" type="password" placeholder="••••••••" required />
       </div>
 

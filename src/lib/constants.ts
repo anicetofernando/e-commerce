@@ -1,4 +1,4 @@
-import { EquipmentType, OrderStatus, PaymentMethod, PaymentStatus, ProductCondition, Province } from "@/generated/prisma/client";
+import { EquipmentType, OrderStatus, PaymentMethod, PaymentStatus, ProductCondition, Province, DiscountType } from "@/generated/prisma/client";
 
 export const SITE_NAME = "Albimaq Peças";
 
@@ -87,6 +87,11 @@ export const CONTACT_INFO = {
   whatsapp: "+258 84 222 7299",
   address: "E.N.6 (Auto Estrada) - Manga, Caixa Postal N° 51, 2100 Beira-Sofala, Moçambique",
   hours: "Segunda a Sexta: 08h00 - 17h30 · Sábado: 08h00 - 13h00",
+};
+
+export const DISCOUNT_TYPE_LABELS: Record<DiscountType, string> = {
+  PERCENTAGEM: "Percentagem (%)",
+  FIXO: "Valor Fixo (MZN)",
 };
 
 export const FREE_SHIPPING_THRESHOLD = 15000;

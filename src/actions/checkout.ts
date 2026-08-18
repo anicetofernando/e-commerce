@@ -3,8 +3,11 @@
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { checkoutSchema } from "@/lib/validation";
-import { generateOrderNumber } from "@/lib/utils";
+import { generateOrderNumber, formatCurrency } from "@/lib/utils";
 import { DEFAULT_SHIPPING_COST, FREE_SHIPPING_THRESHOLD } from "@/lib/constants";
+import { evaluateCoupon, toCouponRecord } from "@/lib/coupon";
+import { sendEmail } from "@/lib/email";
+import { orderConfirmationEmail } from "@/lib/email-templates";
 
 export type CheckoutItemInput = {
   productId: string;
@@ -22,6 +25,7 @@ export type CheckoutSubmission = {
   reference?: string;
   notes?: string;
   paymentMethod: string;
+  couponCode?: string;
   items: CheckoutItemInput[];
 };
 
@@ -61,12 +65,27 @@ export async function placeOrder(input: CheckoutSubmission): Promise<CheckoutRes
     return sum + Number(product.price) * item.quantity;
   }, 0);
 
+  // The discount is always recomputed from the database here — the client
+  // only ever supplies a coupon code, never a discount amount.
+  const data = validated.data;
+  let discountAmount = 0;
+  let couponCode: string | null = null;
+  if (data.couponCode) {
+    const normalizedCode = data.couponCode.trim().toUpperCase();
+    const coupon = await prisma.coupon.findUnique({ where: { code: normalizedCode } });
+    const evaluation = evaluateCoupon(coupon ? toCouponRecord(coupon) : null, subtotal);
+    if (!evaluation.valid) {
+      return { success: false, message: evaluation.message };
+    }
+    discountAmount = evaluation.discountAmount;
+    couponCode = normalizedCode;
+  }
+
   const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : DEFAULT_SHIPPING_COST;
-  const total = subtotal + shippingCost;
+  const total = Math.max(subtotal - discountAmount, 0) + shippingCost;
 
   const user = await getCurrentUser();
   const orderNumber = generateOrderNumber();
-  const data = validated.data;
 
   await prisma.$transaction(async (tx) => {
     await tx.order.create({
@@ -83,6 +102,8 @@ export async function placeOrder(input: CheckoutSubmission): Promise<CheckoutRes
         street: data.street,
         reference: data.reference || null,
         notes: data.notes || null,
+        couponCode,
+        discountAmount,
         subtotal,
         shippingCost,
         total,
@@ -108,6 +129,16 @@ export async function placeOrder(input: CheckoutSubmission): Promise<CheckoutRes
         data: { stockQuantity: { decrement: item.quantity } },
       });
     }
+
+    if (couponCode) {
+      await tx.coupon.update({ where: { code: couponCode }, data: { usedCount: { increment: 1 } } });
+    }
+  });
+
+  await sendEmail({
+    to: data.customerEmail,
+    subject: `Encomenda ${orderNumber} recebida`,
+    html: orderConfirmationEmail({ orderNumber, customerName: data.customerName, total: formatCurrency(total) }),
   });
 
   return { success: true, orderNumber };

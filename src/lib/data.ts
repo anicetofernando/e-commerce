@@ -250,6 +250,7 @@ export async function getOrderByNumber(orderNumber: string) {
     ...order,
     subtotal: Number(order.subtotal),
     shippingCost: Number(order.shippingCost),
+    discountAmount: Number(order.discountAmount),
     total: Number(order.total),
     items: order.items.map((item) => ({
       ...item,
@@ -270,6 +271,7 @@ export async function getUserOrders(userId: string) {
     ...order,
     subtotal: Number(order.subtotal),
     shippingCost: Number(order.shippingCost),
+    discountAmount: Number(order.discountAmount),
     total: Number(order.total),
     items: order.items.map((item) => ({
       ...item,

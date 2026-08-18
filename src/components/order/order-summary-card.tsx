@@ -3,9 +3,10 @@ import { formatCurrency, formatDateTime, cn } from "@/lib/utils";
 import { PAYMENT_METHOD_LABELS, PROVINCE_LABELS, ORDER_STATUS_LABELS, ORDER_STATUS_STYLES } from "@/lib/constants";
 import type { Order, OrderItem, Province, OrderStatus, PaymentMethod } from "@/generated/prisma/client";
 
-type OrderWithItems = Omit<Order, "subtotal" | "shippingCost" | "total" | "province" | "status" | "paymentMethod"> & {
+type OrderWithItems = Omit<Order, "subtotal" | "shippingCost" | "discountAmount" | "total" | "province" | "status" | "paymentMethod"> & {
   subtotal: number;
   shippingCost: number;
+  discountAmount: number;
   total: number;
   province: Province;
   status: OrderStatus;
@@ -45,6 +46,12 @@ export function OrderSummaryCard({ order }: { order: OrderWithItems }) {
           <span>Subtotal</span>
           <span>{formatCurrency(order.subtotal)}</span>
         </div>
+        {order.discountAmount > 0 && (
+          <div className="flex justify-between text-green-700">
+            <span>Desconto{order.couponCode ? ` (${order.couponCode})` : ""}</span>
+            <span>-{formatCurrency(order.discountAmount)}</span>
+          </div>
+        )}
         <div className="flex justify-between text-ink-600">
           <span>Envio</span>
           <span>{order.shippingCost === 0 ? "Grátis" : formatCurrency(order.shippingCost)}</span>

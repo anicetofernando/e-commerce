@@ -2,6 +2,8 @@
 
 import { prisma } from "@/lib/db";
 import { contactSchema } from "@/lib/validation";
+import { sendEmail } from "@/lib/email";
+import { contactReceivedEmail } from "@/lib/email-templates";
 import type { AuthFormState } from "@/actions/auth";
 
 export async function submitContactForm(_prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
@@ -22,6 +24,8 @@ export async function submitContactForm(_prevState: AuthFormState, formData: For
   await prisma.contactMessage.create({
     data: { name, email, phone: phone || null, subject, message },
   });
+
+  await sendEmail({ to: email, subject: "Recebemos a sua mensagem", html: contactReceivedEmail(name) });
 
   return { message: "Mensagem enviada com sucesso. A nossa equipa entrará em contacto em breve." };
 }

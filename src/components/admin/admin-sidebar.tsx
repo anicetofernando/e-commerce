@@ -19,6 +19,8 @@ import {
   Handshake,
   ClipboardList,
   Calculator,
+  Ticket,
+  Send,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -42,6 +44,7 @@ const NAV_GROUPS = [
       { href: "/admin/encomendas", label: "Encomendas", icon: ShoppingCart },
       { href: "/admin/clientes", label: "Clientes", icon: Users },
       { href: "/admin/avaliacoes", label: "Avaliações", icon: Star, countKey: "reviews" as const },
+      { href: "/admin/cupoes", label: "Cupões de Desconto", icon: Ticket },
     ],
   },
   {
@@ -51,6 +54,7 @@ const NAV_GROUPS = [
       { href: "/admin/promocoes", label: "Promoções", icon: Megaphone },
       { href: "/admin/parceiros", label: "Parceiros", icon: Handshake },
       { href: "/admin/blog", label: "Blog", icon: Newspaper },
+      { href: "/admin/newsletter", label: "Newsletter", icon: Send },
     ],
   },
   {

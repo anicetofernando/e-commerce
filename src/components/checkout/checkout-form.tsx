@@ -4,9 +4,10 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2, ShieldCheck, Tag, X } from "lucide-react";
 import { useCartStore, useCartTotals } from "@/lib/cart-store";
 import { placeOrder } from "@/actions/checkout";
+import { applyCoupon } from "@/actions/coupon";
 import { formatCurrency, cn } from "@/lib/utils";
 import { Input, Label, Select, Textarea, FormAlert } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
@@ -47,9 +48,32 @@ export function CheckoutForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<{ code: string; discountAmount: number } | null>(null);
+  const [couponMessage, setCouponMessage] = useState<string | undefined>();
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+
   const selected = addresses.find((a) => a.id === selectedAddressId);
   const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : DEFAULT_SHIPPING_COST;
-  const total = subtotal + shipping;
+  const discount = coupon?.discountAmount ?? 0;
+  const total = Math.max(subtotal - discount, 0) + shipping;
+
+  async function handleApplyCoupon() {
+    if (!couponInput.trim()) return;
+    setIsApplyingCoupon(true);
+    setCouponMessage(undefined);
+    const result = await applyCoupon(couponInput.trim(), subtotal);
+    setIsApplyingCoupon(false);
+
+    if (!result.success) {
+      setCoupon(null);
+      setCouponMessage(result.message);
+      return;
+    }
+
+    setCoupon({ code: result.code, discountAmount: result.discountAmount });
+    setCouponMessage(undefined);
+  }
 
   const paymentOptions = useMemo(() => Object.entries(PAYMENT_METHOD_LABELS), []);
 
@@ -76,6 +100,7 @@ export function CheckoutForm({
       reference: String(formData.get("reference") ?? ""),
       notes: String(formData.get("notes") ?? ""),
       paymentMethod,
+      couponCode: coupon?.code ?? "",
       items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
     });
 
@@ -209,11 +234,52 @@ export function CheckoutForm({
           ))}
         </ul>
 
+        <div className="mt-4 border-t border-ink-100 pt-4">
+          {coupon ? (
+            <div className="flex items-center justify-between gap-2 rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">
+              <span className="flex items-center gap-1.5">
+                <Tag size={14} /> Cupão <strong>{coupon.code}</strong> aplicado
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setCoupon(null);
+                  setCouponInput("");
+                }}
+                className="text-green-700 hover:text-green-900"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ) : (
+            <div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Código de desconto"
+                  value={couponInput}
+                  onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                  className="text-sm"
+                />
+                <Button type="button" variant="outline" size="sm" disabled={isApplyingCoupon} onClick={handleApplyCoupon}>
+                  {isApplyingCoupon ? <Loader2 size={15} className="animate-spin" /> : "Aplicar"}
+                </Button>
+              </div>
+              {couponMessage && <p className="mt-1.5 text-xs text-red-600">{couponMessage}</p>}
+            </div>
+          )}
+        </div>
+
         <div className="mt-4 space-y-2 border-t border-ink-100 pt-4 text-sm text-ink-600">
           <div className="flex justify-between">
             <span>Subtotal</span>
             <span className="font-medium text-ink-900">{formatCurrency(subtotal)}</span>
           </div>
+          {discount > 0 && (
+            <div className="flex justify-between text-green-700">
+              <span>Desconto</span>
+              <span className="font-medium">-{formatCurrency(discount)}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span>Envio</span>
             <span className="font-medium text-ink-900">{shipping === 0 ? "Grátis" : formatCurrency(shipping)}</span>
