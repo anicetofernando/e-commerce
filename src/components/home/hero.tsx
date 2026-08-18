@@ -1,9 +1,12 @@
 import { HeroCarousel } from "@/components/home/hero-carousel";
+import { getHeroSlides } from "@/lib/data";
 
-export function Hero() {
+export async function Hero() {
+  const slides = await getHeroSlides();
+
   return (
     <section className="relative">
-      <HeroCarousel />
+      <HeroCarousel slides={slides} />
     </section>
   );
 }

@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
-import { getCategories } from "@/lib/data";
-import { CONTACT_INFO } from "@/lib/constants";
+import { getCategories, getSiteSettings } from "@/lib/data";
 import { Container } from "@/components/ui/container";
 import { Logo } from "@/components/layout/logo";
 import { FacebookIcon, InstagramIcon, LinkedinIcon } from "@/components/layout/social-icons";
 
 export async function Footer() {
-  const categories = await getCategories();
+  const [categories, settings] = await Promise.all([getCategories(), getSiteSettings()]);
 
   return (
     <footer className="bg-ink-50 text-ink-600">
@@ -60,19 +59,19 @@ export async function Footer() {
           <ul className="space-y-3 text-sm">
             <li className="flex items-start gap-2.5">
               <MapPin size={16} className="mt-0.5 shrink-0 text-brand-500" />
-              <span>{CONTACT_INFO.address}</span>
+              <span>{settings.address}</span>
             </li>
             <li className="flex items-center gap-2.5">
               <Phone size={16} className="shrink-0 text-brand-500" />
-              <a href={`tel:${CONTACT_INFO.phonePrimary}`} className="hover:text-brand-600">{CONTACT_INFO.phonePrimary}</a>
+              <a href={`tel:${settings.phonePrimary}`} className="hover:text-brand-600">{settings.phonePrimary}</a>
             </li>
             <li className="flex items-center gap-2.5">
               <Mail size={16} className="shrink-0 text-brand-500" />
-              <a href={`mailto:${CONTACT_INFO.email}`} className="hover:text-brand-600">{CONTACT_INFO.email}</a>
+              <a href={`mailto:${settings.email}`} className="hover:text-brand-600">{settings.email}</a>
             </li>
             <li className="flex items-start gap-2.5">
               <Clock size={16} className="mt-0.5 shrink-0 text-brand-500" />
-              <span>{CONTACT_INFO.hours}</span>
+              <span>{settings.hours}</span>
             </li>
           </ul>
         </div>
@@ -81,7 +80,7 @@ export async function Footer() {
       <div className="border-t border-ink-200">
         <Container className="flex flex-col items-center justify-center gap-2 py-5 text-center text-xs text-ink-500">
           <p>
-            © {new Date().getFullYear()} Albimaq, Lda. Todos os direitos reservados. Desenvolvido por{" "}
+            © {new Date().getFullYear()} {settings.companyName}. Todos os direitos reservados. Desenvolvido por{" "}
             <a
               href="https://tonline.co.mz"
               target="_blank"

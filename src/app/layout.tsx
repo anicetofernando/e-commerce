@@ -1,10 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
-import { CartDrawer } from "@/components/layout/cart-drawer";
-import { SITE_NAME } from "@/lib/constants";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,8 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: `${SITE_NAME} — Peças para Máquinas de Construção em Moçambique`,
-    template: `%s · ${SITE_NAME}`,
+    default: "ALBIMAQ - Venda, Aluguer, Manutenção e Reparação",
+    template: "%s - Albimaq Oficial",
   },
   description:
     "Peças originais e alternativas para escavadoras, retroescavadoras, pás carregadoras e equipamento pesado. Entrega em todo Moçambique.",
@@ -32,12 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-MZ" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col bg-white text-ink-900">
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
-        <CartDrawer />
-      </body>
+      <body className="flex min-h-full flex-col bg-white text-ink-900">{children}</body>
     </html>
   );
 }

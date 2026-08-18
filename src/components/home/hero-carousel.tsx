@@ -6,63 +6,27 @@ import { ChevronLeft, ChevronRight, Truck, ShieldCheck, Headset } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const SLIDES = [
-  {
-    eyebrow: "Venda de Peças",
-    headlineMain: "A peça certa, para a máquina certa,",
-    headlineHighlight: "sem paragens de obra.",
-    description:
-      "Catálogo completo de peças originais e alternativas para escavadoras, retroescavadoras e pás carregadoras. Compatibilidade garantida, entrega em todo Moçambique.",
-    ctaLabel: "Pedir Orçamento",
-    ctaHref: "/loja",
-    photo: "/servicos/vendapecas.png",
-    photoAlt: "Conjunto de peças originais de motor: turbo, filtros, injetores e engrenagens",
-    photoCompact: true,
-  },
-  {
-    eyebrow: "Aluguer de Máquinas",
-    headlineMain: "A máquina que precisa,",
-    headlineHighlight: "quando precisa.",
-    description:
-      "Empilhadores, mini-carregadoras, pás carregadoras e manipuladores telescópicos disponíveis para aluguer de curta ou longa duração, com apoio técnico incluído.",
-    ctaLabel: "Pedir Orçamento",
-    ctaHref: "/contacto",
-    photo: "/servicos/aluguer.png",
-    photoAlt: "Frota de máquinas disponíveis para aluguer: empilhador, mini-carregadora, pá carregadora e manipulador telescópico",
-  },
-  {
-    eyebrow: "Transporte de Máquinas",
-    headlineMain: "Transporte seguro,",
-    headlineHighlight: "de obra para obra.",
-    description:
-      "Movimentação de empilhadores, pás carregadoras e outro equipamento pesado em veículo articulado próprio, com todas as condições de segurança até à obra.",
-    ctaLabel: "Pedir Orçamento",
-    ctaHref: "/contacto",
-    photo: "/servicos/transporte.png",
-    photoAlt: "Empilhador transportado num semirreboque de plataforma baixa",
-  },
-  {
-    eyebrow: "Manutenção e Reparação",
-    headlineMain: "Assistência técnica",
-    headlineHighlight: "para máquinas pesadas.",
-    description:
-      "Diagnóstico, manutenção preventiva e reparação de sistemas hidráulicos, motores e transmissões, feita por técnicos experientes.",
-    ctaLabel: "Pedir Orçamento",
-    ctaHref: "/contacto",
-    photo: "/servicos/manutencao.png",
-    photoAlt: "Técnicos a fazer manutenção ao motor de uma pá carregadora, com ferramentas e peças no chão",
-  },
-];
+export type HeroSlideData = {
+  id: string;
+  headlineMain: string;
+  headlineHighlight: string;
+  description: string;
+  ctaLabel: string;
+  ctaHref: string;
+  photoUrl: string;
+  photoAlt: string;
+  photoCompact: boolean;
+};
 
 const INTERVAL_MS = 6500;
 
-function HeroPhotoStack({ active }: { active: number }) {
+function HeroPhotoStack({ slides, active }: { slides: HeroSlideData[]; active: number }) {
   return (
     <div className="pointer-events-none relative flex h-[380px] w-[520px] shrink-0 items-center justify-center">
-      {SLIDES.map((s, i) => (
+      {slides.map((s, i) => (
         <Image
-          key={s.photo}
-          src={s.photo}
+          key={s.id}
+          src={s.photoUrl}
           alt={s.photoAlt}
           fill
           sizes="520px"
@@ -79,19 +43,23 @@ function HeroPhotoStack({ active }: { active: number }) {
 }
 
 function SlideDots({
+  slides,
   active,
   setActive,
   className,
 }: {
+  slides: HeroSlideData[];
   active: number;
   setActive: (updater: (i: number) => number) => void;
   className?: string;
 }) {
+  if (slides.length <= 1) return null;
+
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      {SLIDES.map((s, i) => (
+      {slides.map((s, i) => (
         <button
-          key={s.eyebrow}
+          key={s.id}
           type="button"
           onClick={() => setActive(() => i)}
           aria-label={`Ir para o slide ${i + 1}`}
@@ -105,12 +73,14 @@ function SlideDots({
   );
 }
 
-function HeroArrowNav({ setActive }: { setActive: (updater: (i: number) => number) => void }) {
+function HeroArrowNav({ slideCount, setActive }: { slideCount: number; setActive: (updater: (i: number) => number) => void }) {
+  if (slideCount <= 1) return null;
+
   return (
     <>
       <button
         type="button"
-        onClick={() => setActive((i) => (i - 1 + SLIDES.length) % SLIDES.length)}
+        onClick={() => setActive((i) => (i - 1 + slideCount) % slideCount)}
         aria-label="Slide anterior"
         className="absolute top-1/2 left-2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-ink-200 bg-white text-ink-600 shadow-sm hover:border-brand-500 hover:text-brand-600 lg:flex"
       >
@@ -118,7 +88,7 @@ function HeroArrowNav({ setActive }: { setActive: (updater: (i: number) => numbe
       </button>
       <button
         type="button"
-        onClick={() => setActive((i) => (i + 1) % SLIDES.length)}
+        onClick={() => setActive((i) => (i + 1) % slideCount)}
         aria-label="Próximo slide"
         className="absolute top-1/2 right-2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-ink-200 bg-white text-ink-600 shadow-sm hover:border-brand-500 hover:text-brand-600 lg:flex"
       >
@@ -128,19 +98,21 @@ function HeroArrowNav({ setActive }: { setActive: (updater: (i: number) => numbe
   );
 }
 
-export function HeroCarousel() {
+export function HeroCarousel({ slides }: { slides: HeroSlideData[] }) {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
 
   useEffect(() => {
-    if (paused) return;
+    if (paused || slides.length <= 1) return;
     const id = setInterval(() => {
-      setActive((i) => (i + 1) % SLIDES.length);
+      setActive((i) => (i + 1) % slides.length);
     }, INTERVAL_MS);
     return () => clearInterval(id);
-  }, [paused]);
+  }, [paused, slides.length]);
 
-  const slide = SLIDES[active];
+  if (slides.length === 0) return null;
+
+  const slide = slides[active];
 
   return (
     <div
@@ -148,10 +120,10 @@ export function HeroCarousel() {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <HeroArrowNav setActive={setActive} />
+      <HeroArrowNav slideCount={slides.length} setActive={setActive} />
 
       <div className="container-page relative flex items-start justify-between gap-8">
-        <div key={active} className="max-w-xl animate-[fade-in-up_0.5s_ease]">
+        <div key={slide.id} className="max-w-xl animate-[fade-in-up_0.5s_ease]">
           <h1 className="text-2xl leading-tight font-black text-ink-900 sm:text-3xl lg:text-4xl">
             {slide.headlineMain} <span className="text-brand-600">{slide.headlineHighlight}</span>
           </h1>
@@ -177,12 +149,12 @@ export function HeroCarousel() {
             </span>
           </div>
 
-          <SlideDots active={active} setActive={setActive} className="mt-10 lg:hidden" />
+          <SlideDots slides={slides} active={active} setActive={setActive} className="mt-10 lg:hidden" />
         </div>
 
         <div className="hidden shrink-0 flex-col items-center lg:flex">
-          <HeroPhotoStack active={active} />
-          <SlideDots active={active} setActive={setActive} className="mt-2" />
+          <HeroPhotoStack slides={slides} active={active} />
+          <SlideDots slides={slides} active={active} setActive={setActive} className="mt-2" />
         </div>
       </div>
     </div>

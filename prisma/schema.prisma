@@ -336,3 +336,67 @@ model BlogPost {
   author        String
   publishedAt   DateTime @default(now())
 }
+
+model HeroSlide {
+  id                String  @id @default(cuid())
+  headlineMain      String
+  headlineHighlight String
+  description       String
+  ctaLabel          String
+  ctaHref           String
+  photoUrl          String
+  photoAlt          String
+  photoCompact      Boolean @default(false)
+  position          Int     @default(0)
+  isActive          Boolean @default(true)
+}
+
+model PromoBanner {
+  id          String  @id @default(cuid())
+  title       String
+  badge       String
+  description String
+  href        String
+  icon        String
+  gradient    String
+  position    Int     @default(0)
+  isActive    Boolean @default(true)
+}
+
+model PartnerLogo {
+  id        String  @id @default(cuid())
+  name      String
+  imageUrl  String
+  position  Int     @default(0)
+  isActive  Boolean @default(true)
+}
+
+model BusinessQuestionnaireResponse {
+  id             String   @id @default(cuid())
+  respondentName String
+  respondentRole String?
+  answers        Json
+  submittedAt    DateTime @default(now())
+}
+
+model SiteSettings {
+  id             String   @id @default("singleton")
+  companyName    String
+  phonePrimary   String
+  phoneSecondary String
+  whatsapp       String
+  email          String
+  address        String
+  hours          String
+  updatedAt      DateTime @updatedAt
+}
+
+// Flat {fieldKey: value} overrides for the equipment rental / labor services
+// price table (admin/precos). Field keys are stable strings defined in
+// src/lib/pricing-data.ts; anything not present there falls back to the
+// printed original value, so the table works before any edit is ever saved.
+model PricingTable {
+  id        String   @id @default("singleton")
+  data      Json     @default("{}")
+  updatedAt DateTime @updatedAt
+}

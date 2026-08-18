@@ -71,7 +71,7 @@ export async function login(_prevState: AuthFormState, formData: FormData): Prom
   }
 
   await createSession(user.id);
-  redirect("/conta");
+  redirect(user.role === "ADMIN" ? "/admin" : "/conta");
 }
 
 export async function logout() {

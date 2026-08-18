@@ -1,9 +1,11 @@
 import { MessageCircle, Phone } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
-import { CONTACT_INFO } from "@/lib/constants";
+import { getSiteSettings } from "@/lib/data";
 
-export function CtaBand() {
+export async function CtaBand() {
+  const settings = await getSiteSettings();
+
   return (
     <section
       className="bg-cover bg-center py-14"
@@ -23,13 +25,13 @@ export function CtaBand() {
             Falar com a Equipa
           </Button>
           <Button
-            href={`tel:${CONTACT_INFO.phonePrimary}`}
+            href={`tel:${settings.phonePrimary}`}
             size="lg"
             variant="outline"
             className="border-white/30 bg-transparent text-white hover:border-brand-400 hover:text-brand-400"
           >
             <Phone size={17} />
-            {CONTACT_INFO.phonePrimary}
+            {settings.phonePrimary}
           </Button>
         </div>
       </Container>

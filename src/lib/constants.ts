@@ -1,4 +1,4 @@
-import { EquipmentType, OrderStatus, PaymentMethod, Province } from "@/generated/prisma/client";
+import { EquipmentType, OrderStatus, PaymentMethod, PaymentStatus, ProductCondition, Province } from "@/generated/prisma/client";
 
 export const SITE_NAME = "Albimaq Peças";
 
@@ -34,6 +34,12 @@ export const EQUIPMENT_TYPE_LABELS: Record<EquipmentType, string> = {
   GERADOR: "Gerador",
 };
 
+export const PRODUCT_CONDITION_LABELS: Record<ProductCondition, string> = {
+  NOVO: "Novo",
+  RECONDICIONADO: "Recondicionado",
+  USADO: "Usado",
+};
+
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   TRANSFERENCIA_BANCARIA: "Transferência Bancária",
   MPESA: "M-Pesa",
@@ -48,6 +54,20 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   ENVIADA: "Enviada",
   ENTREGUE: "Entregue",
   CANCELADA: "Cancelada",
+};
+
+export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
+  PENDENTE: "Pendente",
+  PAGO: "Pago",
+  FALHOU: "Falhou",
+  REEMBOLSADO: "Reembolsado",
+};
+
+export const PAYMENT_STATUS_STYLES: Record<PaymentStatus, string> = {
+  PENDENTE: "bg-amber-50 text-amber-700 ring-amber-600/20",
+  PAGO: "bg-green-50 text-green-700 ring-green-600/20",
+  FALHOU: "bg-red-50 text-red-700 ring-red-600/20",
+  REEMBOLSADO: "bg-purple-50 text-purple-700 ring-purple-600/20",
 };
 
 export const ORDER_STATUS_STYLES: Record<OrderStatus, string> = {

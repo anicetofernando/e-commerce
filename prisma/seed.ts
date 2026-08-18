@@ -1236,6 +1236,9 @@ async function main() {
       prisma.contactMessage.deleteMany(),
       prisma.newsletterSubscriber.deleteMany(),
       prisma.blogPost.deleteMany(),
+      prisma.heroSlide.deleteMany(),
+      prisma.promoBanner.deleteMany(),
+      prisma.partnerLogo.deleteMany(),
       prisma.user.deleteMany(),
     ],
     { maxWait: 20000, timeout: 20000 },
@@ -1394,6 +1397,102 @@ async function main() {
   for (const post of BLOG_POSTS) {
     await prisma.blogPost.create({ data: post });
   }
+
+  console.log("A criar conteúdo da homepage (hero, promoções, parceiros)...");
+  await prisma.heroSlide.createMany({
+    data: [
+      {
+        headlineMain: "A peça certa, para a máquina certa,",
+        headlineHighlight: "sem paragens de obra.",
+        description:
+          "Catálogo completo de peças originais e alternativas para escavadoras, retroescavadoras e pás carregadoras. Compatibilidade garantida, entrega em todo Moçambique.",
+        ctaLabel: "Pedir Orçamento",
+        ctaHref: "/loja",
+        photoUrl: "/servicos/vendapecas.png",
+        photoAlt: "Conjunto de peças originais de motor: turbo, filtros, injetores e engrenagens",
+        photoCompact: true,
+        position: 0,
+      },
+      {
+        headlineMain: "A máquina que precisa,",
+        headlineHighlight: "quando precisa.",
+        description:
+          "Empilhadores, mini-carregadoras, pás carregadoras e manipuladores telescópicos disponíveis para aluguer de curta ou longa duração, com apoio técnico incluído.",
+        ctaLabel: "Pedir Orçamento",
+        ctaHref: "/contacto",
+        photoUrl: "/servicos/aluguer.png",
+        photoAlt: "Frota de máquinas disponíveis para aluguer: empilhador, mini-carregadora, pá carregadora e manipulador telescópico",
+        position: 1,
+      },
+      {
+        headlineMain: "Transporte seguro,",
+        headlineHighlight: "de obra para obra.",
+        description:
+          "Movimentação de empilhadores, pás carregadoras e outro equipamento pesado em veículo articulado próprio, com todas as condições de segurança até à obra.",
+        ctaLabel: "Pedir Orçamento",
+        ctaHref: "/contacto",
+        photoUrl: "/servicos/transporte.png",
+        photoAlt: "Empilhador transportado num semirreboque de plataforma baixa",
+        position: 2,
+      },
+      {
+        headlineMain: "Assistência técnica",
+        headlineHighlight: "para máquinas pesadas.",
+        description:
+          "Diagnóstico, manutenção preventiva e reparação de sistemas hidráulicos, motores e transmissões, feita por técnicos experientes.",
+        ctaLabel: "Marcar Manutenção",
+        ctaHref: "/contacto",
+        photoUrl: "/servicos/manutencao.png",
+        photoAlt: "Técnicos a fazer manutenção ao motor de uma pá carregadora, com ferramentas e peças no chão",
+        position: 3,
+      },
+    ],
+  });
+
+  await prisma.promoBanner.createMany({
+    data: [
+      {
+        title: "Sistema Hidráulico",
+        badge: "Stock Permanente",
+        description: "Bombas, cilindros e mangueiras de alta pressão prontos a enviar.",
+        href: "/loja?categoria=hidraulica",
+        icon: "Droplets",
+        gradient: "laranja",
+        position: 0,
+      },
+      {
+        title: "Filtros Originais",
+        badge: "Todas as Marcas",
+        description: "Óleo, ar, combustível e hidráulicos com compatibilidade garantida.",
+        href: "/loja?categoria=filtros",
+        icon: "Filter",
+        gradient: "escuro",
+        position: 1,
+      },
+    ],
+  });
+
+  await prisma.partnerLogo.createMany({
+    data: [
+      { name: "Acess", imageUrl: "/images/clients/acess.png", position: 0 },
+      { name: "Cornelder", imageUrl: "/images/clients/cornelder.png", position: 1 },
+      { name: "Barcelona Técnica", imageUrl: "/images/clients/barceltecnica.png", position: 2 },
+      { name: "Fertilizer", imageUrl: "/images/clients/fertilizer.png", position: 3 },
+      { name: "Sunnline", imageUrl: "/images/clients/sunnline.png", position: 4 },
+      { name: "CCIS", imageUrl: "/images/clients/ccis.png", position: 5 },
+      { name: "Trentyre", imageUrl: "/images/clients/trentyre.png", position: 6 },
+      { name: "Explosivo", imageUrl: "/images/clients/explosivo.png", position: 7 },
+      { name: "Steinweg", imageUrl: "/images/clients/steinweg.png", position: 8 },
+      { name: "Sousa", imageUrl: "/images/clients/sousa.png", position: 9 },
+      { name: "Revimo", imageUrl: "/images/clients/revimo.png", position: 10 },
+      { name: "MSC", imageUrl: "/images/clients/msc.png", position: 11 },
+      { name: "NBC", imageUrl: "/images/clients/nbc.png", position: 12 },
+      { name: "ETG", imageUrl: "/images/clients/etg.png", position: 13 },
+      { name: "Elevação", imageUrl: "/images/clients/elevacao.png", position: 14 },
+      { name: "Capital", imageUrl: "/images/clients/capital.gif", position: 15 },
+      { name: "Bolloré", imageUrl: "/images/clients/bolore.png", position: 16 },
+    ],
+  });
 
   console.log("Seed concluído com sucesso.");
   console.log(`Utilizador de teste: cliente@demo.com / Albimaq@2026`);

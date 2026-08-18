@@ -1,28 +1,28 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Search, User, Heart, Phone, Mail, Wrench, LayoutGrid } from "lucide-react";
-import { getCategories } from "@/lib/data";
+import { User, Heart, Phone, Mail, Wrench, LayoutGrid } from "lucide-react";
+import { getCategories, getSiteSettings } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth";
-import { CONTACT_INFO } from "@/lib/constants";
 import { Container } from "@/components/ui/container";
 import { CartButton } from "@/components/layout/cart-button";
 import { MobileMenu } from "@/components/layout/mobile-menu";
 import { NavDropdown } from "@/components/layout/nav-dropdown";
+import { HeaderSearch } from "@/components/layout/header-search";
 import { Logo } from "@/components/layout/logo";
 
 export async function Header() {
-  const [categories, user] = await Promise.all([getCategories(), getCurrentUser()]);
+  const [categories, user, settings] = await Promise.all([getCategories(), getCurrentUser(), getSiteSettings()]);
 
   return (
     <header className="sticky top-0 z-40 bg-white shadow-sm">
       <div className="hidden border-b border-ink-100 bg-white text-ink-600 lg:block">
         <Container className="flex h-9 items-center justify-between text-xs">
           <div className="flex items-center gap-5">
-            <a href={`tel:${CONTACT_INFO.phonePrimary}`} className="flex items-center gap-1.5 hover:text-brand-700">
-              <Phone size={13} /> {CONTACT_INFO.phonePrimary}
+            <a href={`tel:${settings.phonePrimary}`} className="flex items-center gap-1.5 hover:text-brand-700">
+              <Phone size={13} /> {settings.phonePrimary}
             </a>
-            <a href={`mailto:${CONTACT_INFO.email}`} className="flex items-center gap-1.5 hover:text-brand-700">
-              <Mail size={13} /> {CONTACT_INFO.email}
+            <a href={`mailto:${settings.email}`} className="flex items-center gap-1.5 hover:text-brand-700">
+              <Mail size={13} /> {settings.email}
             </a>
           </div>
           <div className="flex items-center gap-5">
@@ -34,27 +34,11 @@ export async function Header() {
       </div>
 
       <Container className="flex h-20 items-center gap-4 lg:gap-8">
-        <MobileMenu categories={categories} />
+        <MobileMenu categories={categories} phonePrimary={settings.phonePrimary} />
 
         <Logo />
 
-        <form action="/loja" method="GET" className="hidden flex-1 lg:flex">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              name="q"
-              placeholder="Pesquisar por peça, referência OEM ou nº de série..."
-              className="h-11 w-full rounded-l-md border border-r-0 border-ink-200 bg-white py-2.5 pr-4 pl-11 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
-            />
-            <Search size={18} className="absolute top-1/2 left-3.5 -translate-y-1/2 text-ink-400" />
-          </div>
-          <button
-            type="submit"
-            className="h-11 shrink-0 rounded-r-md bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700"
-          >
-            Pesquisar
-          </button>
-        </form>
+        <HeaderSearch variant="desktop" />
 
         <div className="ml-auto flex items-center gap-1 lg:ml-0">
           <Link
@@ -82,17 +66,7 @@ export async function Header() {
         </div>
       </Container>
 
-      <form action="/loja" method="GET" className="border-t border-ink-100 px-4 py-3 lg:hidden">
-        <div className="relative">
-          <input
-            type="text"
-            name="q"
-            placeholder="Pesquisar peça ou referência..."
-            className="w-full rounded-md border border-ink-200 bg-ink-50 py-2.5 pr-4 pl-11 text-sm outline-none focus:border-brand-500 focus:bg-white"
-          />
-          <Search size={18} className="absolute top-1/2 left-3.5 -translate-y-1/2 text-ink-400" />
-        </div>
-      </form>
+      <HeaderSearch variant="mobile" />
 
       <div className="hidden bg-brand-600 lg:block">
         <Container>

@@ -1,0 +1,315 @@
+/* Overlay editor for the ALBIMAQ equipment-rental / labor-services price
+   sheet: the background is the actual scanned page image (pixel-perfect),
+   and every editable field is an absolutely-positioned transparent input
+   sitting exactly on top of its printed number/text. A field only paints a
+   background and shows its own text once it differs from the printed
+   original (".dirty") or is focused — otherwise the photo shows through
+   untouched, so an unedited table is indistinguishable from the source PDF. */
+
+.pricing-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-end;
+  background: #f4f6f9;
+  border: 1px solid #e2d9cc;
+  border-radius: 10px 10px 0 0;
+  padding: 14px 20px;
+}
+.pricing-controls .field label {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #3e4c63;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+.pricing-controls .field input {
+  font: inherit;
+  font-size: 0.95rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #c8d0dc;
+  width: 140px;
+  background: #fff;
+  color: #1c1c1c;
+}
+.pricing-controls .field input:focus {
+  outline: 2px solid #3e4c63;
+  outline-offset: 1px;
+}
+.pricing-controls .hint {
+  font-size: 0.76rem;
+  color: #6b7280;
+  max-width: 280px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.pricing-card {
+  border-radius: 0 0 10px 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+.pricing-frame {
+  position: relative;
+  width: 100%;
+  line-height: 0;
+  container-type: inline-size;
+}
+.pricing-bg {
+  width: 100%;
+  height: auto;
+  display: block;
+  user-select: none;
+}
+
+.ov {
+  position: absolute;
+  line-height: normal;
+}
+.ov-text,
+.ov-money,
+.ov-plainnum,
+.ov-cell,
+.ov-row {
+  font-family: "Segoe UI", Verdana, Arial, sans-serif;
+  font-size: 1.72cqw;
+  font-weight: 400;
+}
+
+input.ov-text,
+input.ov-money,
+input.ov-plainnum {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  margin: 0;
+  padding: 0 0.5%;
+  background: transparent;
+  color: transparent;
+  font: inherit;
+  text-align: inherit;
+  caret-color: #1c1c1c;
+}
+.ov-text {
+  text-align: left;
+}
+.ov-money,
+.ov-plainnum {
+  text-align: center;
+}
+.ov-cell,
+.ov-row {
+  background: transparent;
+}
+.ov-cell .com,
+.ov-cell .total,
+.ov-cell .ov-unit,
+.ov-row .ov-unit,
+.ov-row-val {
+  color: transparent;
+}
+
+input.ov-text:focus,
+input.ov-money:focus,
+input.ov-plainnum:focus,
+input.ov-text.dirty,
+input.ov-money.dirty,
+input.ov-plainnum.dirty {
+  color: #1c1c1c;
+  background: var(--cellbg, #fff);
+}
+.ov-cell:focus-within,
+.ov-cell.dirty,
+.ov-row:focus-within,
+.ov-row.dirty {
+  background: var(--cellbg, #fff);
+}
+.ov-cell:focus-within .com,
+.ov-cell:focus-within .total,
+.ov-cell:focus-within .ov-unit,
+.ov-cell:focus-within .sem,
+.ov-cell.dirty .com,
+.ov-cell.dirty .total,
+.ov-cell.dirty .ov-unit,
+.ov-cell.dirty .sem,
+.ov-row:focus-within .ov-unit,
+.ov-row:focus-within .ov-row-val,
+.ov-row.dirty .ov-unit,
+.ov-row.dirty .ov-row-val {
+  color: #1c1c1c;
+}
+.ov-total-cell:has(.mzn.show) {
+  background: var(--cellbg, #fff);
+}
+.ov-total-cell:has(.mzn.show) .total,
+.ov-total-cell:has(.mzn.show) .ov-unit {
+  color: #1c1c1c;
+}
+
+.ov-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3em;
+  padding: 0 0.4%;
+  overflow: hidden;
+}
+.ov-cell .sem.ov-money {
+  position: static;
+  width: 3.6em;
+  flex: none;
+  min-width: 0;
+  text-align: right;
+  padding: 0;
+}
+.ov-unit {
+  white-space: nowrap;
+  flex: none;
+}
+.ov-total-cell {
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.1;
+  gap: 0;
+}
+.total-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3em;
+  max-width: 100%;
+}
+.total-line .total,
+.ov-cell .com {
+  min-width: 0;
+  white-space: nowrap;
+}
+.ov-total-cell .mzn {
+  font-size: 0.78em;
+  color: #7a4a1f !important;
+  display: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.ov-total-cell .mzn.show {
+  display: block;
+}
+
+.ov-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1%;
+  gap: 4%;
+  overflow: hidden;
+}
+.ov-row .lbl-input {
+  position: static;
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  background: transparent;
+  border: none;
+  font: inherit;
+  color: transparent;
+  padding: 0;
+  caret-color: #1c1c1c;
+}
+.ov-row:focus-within .lbl-input,
+.ov-row.dirty .lbl-input {
+  color: #1c1c1c;
+}
+.ov-row-val {
+  white-space: nowrap;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+}
+.labor-money {
+  width: 5.5em;
+  text-align: right;
+  font: inherit;
+  color: inherit;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-weight: 600;
+  caret-color: #1c1c1c;
+}
+
+@media (max-width: 640px) {
+  .ov-text,
+  .ov-money,
+  .ov-plainnum,
+  .ov-cell,
+  .ov-row {
+    font-size: 2.1cqw;
+  }
+}
+
+/* Download PDF: print each page image full-bleed, A4 landscape (same ratio
+   as the source PDF), with every field's current value forced opaque over
+   its exact matching cell background regardless of dirty/focus state. */
+@media print {
+  html,
+  body {
+    background: #fff !important;
+    margin: 0;
+    padding: 0;
+  }
+  .pricing-editor-chrome,
+  .pricing-controls {
+    display: none !important;
+  }
+  .pricing-section {
+    margin: 0;
+    break-after: page;
+    page-break-after: always;
+  }
+  .pricing-section:last-of-type {
+    break-after: auto;
+    page-break-after: auto;
+  }
+  .pricing-card {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+  .pricing-bg {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color-adjust: exact;
+  }
+  .ov-cell,
+  .ov-row {
+    background: var(--cellbg) !important;
+  }
+  input.ov-text,
+  input.ov-money,
+  input.ov-plainnum,
+  .lbl-input {
+    color: #1c1c1c !important;
+    background: transparent !important;
+  }
+  .ov-cell .com,
+  .ov-cell .total,
+  .ov-cell .ov-unit,
+  .ov-row .ov-unit,
+  .ov-row-val {
+    color: #1c1c1c !important;
+  }
+  .mzn {
+    display: none !important;
+  }
+  @page {
+    size: 297mm 210mm;
+    margin: 0;
+  }
+}

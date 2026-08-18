@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/db";
+import { CONTACT_INFO } from "@/lib/constants";
 import type { ProductCardData, CategoryNavData } from "@/lib/types";
 import type { Prisma } from "@/generated/prisma/client";
 
@@ -276,6 +277,53 @@ export async function getUserOrders(userId: string) {
       lineTotal: Number(item.lineTotal),
     })),
   }));
+}
+
+export async function getSiteSettings() {
+  const settings = await prisma.siteSettings.findUnique({ where: { id: "singleton" } });
+  if (settings) return settings;
+
+  return {
+    id: "singleton",
+    companyName: CONTACT_INFO.companyName,
+    phonePrimary: CONTACT_INFO.phonePrimary,
+    phoneSecondary: CONTACT_INFO.phoneSecondary,
+    whatsapp: CONTACT_INFO.whatsapp,
+    email: CONTACT_INFO.email,
+    address: CONTACT_INFO.address,
+    hours: CONTACT_INFO.hours,
+    updatedAt: new Date(),
+  };
+}
+
+const DEFAULT_HERO_SLIDES = [
+  {
+    id: "default-1",
+    headlineMain: "A peça certa, para a máquina certa,",
+    headlineHighlight: "sem paragens de obra.",
+    description:
+      "Catálogo completo de peças originais e alternativas para escavadoras, retroescavadoras e pás carregadoras. Compatibilidade garantida, entrega em todo Moçambique.",
+    ctaLabel: "Pedir Orçamento",
+    ctaHref: "/loja",
+    photoUrl: "/servicos/vendapecas.png",
+    photoAlt: "Conjunto de peças originais de motor: turbo, filtros, injetores e engrenagens",
+    photoCompact: true,
+    position: 0,
+    isActive: true,
+  },
+];
+
+export async function getHeroSlides() {
+  const slides = await prisma.heroSlide.findMany({ where: { isActive: true }, orderBy: { position: "asc" } });
+  return slides.length > 0 ? slides : DEFAULT_HERO_SLIDES;
+}
+
+export async function getPromoBanners() {
+  return prisma.promoBanner.findMany({ where: { isActive: true }, orderBy: { position: "asc" } });
+}
+
+export async function getPartnerLogos() {
+  return prisma.partnerLogo.findMany({ where: { isActive: true }, orderBy: { position: "asc" } });
 }
 
 export async function getPriceBounds() {

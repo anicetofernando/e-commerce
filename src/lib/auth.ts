@@ -30,3 +30,10 @@ export const requireUser = cache(async () => {
   if (!user) redirect("/entrar");
   return user;
 });
+
+export const requireAdmin = cache(async () => {
+  const user = await getCurrentUser();
+  if (!user) redirect("/entrar");
+  if (user.role !== "ADMIN") redirect("/");
+  return user;
+});

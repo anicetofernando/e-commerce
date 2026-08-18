@@ -4,10 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { Menu, X, ChevronRight, Wrench, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CONTACT_INFO } from "@/lib/constants";
 import type { CategoryNavData } from "@/lib/types";
 
-export function MobileMenu({ categories }: { categories: CategoryNavData[] }) {
+export function MobileMenu({ categories, phonePrimary }: { categories: CategoryNavData[]; phonePrimary: string }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -107,9 +106,9 @@ export function MobileMenu({ categories }: { categories: CategoryNavData[] }) {
           </nav>
 
           <div className="border-t border-ink-100 px-5 py-4">
-            <a href={`tel:${CONTACT_INFO.phonePrimary}`} className="flex items-center gap-2 text-sm font-semibold text-ink-900">
+            <a href={`tel:${phonePrimary}`} className="flex items-center gap-2 text-sm font-semibold text-ink-900">
               <Phone size={16} className="text-brand-600" />
-              {CONTACT_INFO.phonePrimary}
+              {phonePrimary}
             </a>
           </div>
         </aside>
