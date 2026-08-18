@@ -19,6 +19,8 @@ import {
   LB_ROW_BG_PAIR1,
   LB_ROW_BG_PAIR2_LEFT,
   LB_ROW_BG_PAIR2_RIGHT,
+  LB_TIRE_ROW_H,
+  type LbRowHeights,
   type EquipmentTableConfig,
   type LaborTableConfig,
 } from "@/lib/pricing-data";
@@ -156,7 +158,7 @@ ${html.join("\n")}
 export function renderLaborTable(config: LaborTableConfig, overrides: Record<string, string>): string {
   const prefix = config.prefix;
 
-  function lbStyle(top0: number, rowH: number, rowIdx: number, col: "left" | "right", bg: string): string {
+  function lbStyle(top0: number, rowH: LbRowHeights, rowIdx: number, col: "left" | "right", bg: string): string {
     const r = lbBoxRect(top0, rowH, rowIdx, col);
     return `left:${pct(r.left, IMG_W)}%;top:${pct(r.top, IMG_H)}%;width:${pct(r.width, IMG_W)}%;height:${pct(r.height, IMG_H)}%;--cellbg:${bg};`;
   }
@@ -164,7 +166,7 @@ export function renderLaborTable(config: LaborTableConfig, overrides: Record<str
   function block(
     name: "labor" | "tire" | "extra" | "forklift",
     top0: number,
-    rowH: number,
+    rowH: LbRowHeights,
     col: "left" | "right",
     bgList: string | string[],
   ): string {
@@ -183,7 +185,7 @@ export function renderLaborTable(config: LaborTableConfig, overrides: Record<str
 
   const rows = [
     block("labor", LB_PAIR1_TOP, LB_PAIR1_ROW_H, "left", rgb(LB_ROW_BG_PAIR1)),
-    block("tire", LB_PAIR1_TOP, LB_PAIR1_ROW_H, "right", rgb(LB_ROW_BG_PAIR1)),
+    block("tire", LB_PAIR1_TOP, LB_TIRE_ROW_H, "right", rgb(LB_ROW_BG_PAIR1)),
     block("extra", LB_PAIR2_TOP, LB_PAIR2_ROW_H, "left", LB_ROW_BG_PAIR2_LEFT.map(rgb)),
     block("forklift", LB_PAIR2_RIGHT_TOP, LB_PAIR2_RIGHT_ROW_H, "right", LB_ROW_BG_PAIR2_RIGHT.map(rgb)),
   ].join("\n");

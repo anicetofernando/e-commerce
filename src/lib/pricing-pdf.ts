@@ -40,6 +40,10 @@ import {
   LB_LEFT_X0,
   LB_LABEL_X0_LEFT,
   LB_VALUE_X1_RIGHT,
+  LB_TIRE_ROW_H,
+  lbRowOffset,
+  lbTotalHeight,
+  type LbRowHeights,
   EQUIPMENT_TABLES,
   LABOR_TABLES,
   type EquipmentTableConfig,
@@ -132,6 +136,70 @@ function drawField(
   else x = r.x + (r.width - textWidth) / 2;
   const y = r.y + (r.height - size) / 2 + size * 0.21;
   page.drawText(text, { x, y, size, font, color: INK });
+}
+
+/** The original's two longest labor labels ("Sunday/Holiday Rate (by
+ * technician)", "Travel fee within from the city of Beira") wrap onto a
+ * second line rather than shrinking — every other label on the sheet is
+ * the same size. drawField's single-line shrink-to-fit doesn't replicate
+ * that, so long labels came out tiny instead of wrapped. Tries the single
+ * line at the table's normal size first; if it doesn't fit, greedily
+ * word-wraps into two lines at that same size; only falls back to
+ * shrinking if even two lines can't fit the row. */
+function drawWrappedLabel(page: PDFPage, font: PDFFont, text: string, rect: BoxRect, bg: RGB, padding = 4) {
+  const r = toPdfRect(rect);
+  page.drawRectangle({ x: r.x, y: r.y, width: r.width, height: r.height, color: rgb(bg[0] / 255, bg[1] / 255, bg[2] / 255) });
+  if (!text) return;
+  const maxWidth = Math.max(1, r.width - padding * 2);
+
+  if (font.widthOfTextAtSize(text, BASE_SIZE) <= maxWidth) {
+    const y = r.y + (r.height - BASE_SIZE) / 2 + BASE_SIZE * 0.21;
+    page.drawText(text, { x: r.x + padding, y, size: BASE_SIZE, font, color: INK });
+    return;
+  }
+
+  const words = text.split(" ");
+  if (words.length < 2) {
+    const size = fitSize(font, text, maxWidth, BASE_SIZE);
+    const y = r.y + (r.height - size) / 2 + size * 0.21;
+    page.drawText(text, { x: r.x + padding, y, size, font, color: INK });
+    return;
+  }
+
+  // Picks whichever split point makes the WIDER of the two lines as narrow
+  // as possible — greedily maximizing line1 instead (the usual word-wrap
+  // approach) picks badly when one word is much longer than the rest (e.g.
+  // "Domingos/Feriados", no space to break on): it strands that word alone
+  // with everything else crammed onto line2, forcing a far more aggressive
+  // shrink than a balanced split would need.
+  let line1 = words[0];
+  let line2 = words.slice(1).join(" ");
+  let widestLine = Math.max(font.widthOfTextAtSize(line1, BASE_SIZE), font.widthOfTextAtSize(line2, BASE_SIZE));
+  for (let i = 2; i < words.length; i++) {
+    const candidate1 = words.slice(0, i).join(" ");
+    const candidate2 = words.slice(i).join(" ");
+    const w = Math.max(font.widthOfTextAtSize(candidate1, BASE_SIZE), font.widthOfTextAtSize(candidate2, BASE_SIZE));
+    if (w < widestLine) {
+      widestLine = w;
+      line1 = candidate1;
+      line2 = candidate2;
+    }
+  }
+
+  const lineMult = 1.02;
+  const size = Math.min(BASE_SIZE, (BASE_SIZE * maxWidth) / widestLine);
+
+  if (size * lineMult * 2 > r.height) {
+    const fallbackSize = fitSize(font, text, maxWidth, BASE_SIZE);
+    const y = r.y + (r.height - fallbackSize) / 2 + fallbackSize * 0.21;
+    page.drawText(text, { x: r.x + padding, y, size: fallbackSize, font, color: INK });
+    return;
+  }
+
+  const lineH = size * lineMult;
+  const blockBottom = r.y + (r.height - lineH * 2) / 2;
+  page.drawText(line1, { x: r.x + padding, y: blockBottom + lineH + size * 0.21, size, font, color: INK });
+  page.drawText(line2, { x: r.x + padding, y: blockBottom + size * 0.21, size, font, color: INK });
 }
 
 /** The Total cell doubles as the câmbio conversion display: once an admin
@@ -267,14 +335,14 @@ function drawEquipmentPage(
  * rule, the label/value divider, and the white row separators — distinct
  * from LB_DIVIDER_L/R (the thick bar between the two half-page columns),
  * which nothing paints over and so needs no redrawing. */
-function drawLaborGrid(page: PDFPage, top0: number, rowH: number, rowCount: number, col: "left" | "right", dividerX: number) {
+function drawLaborGrid(page: PDFPage, top0: number, rowH: LbRowHeights, rowCount: number, col: "left" | "right", dividerX: number) {
   const gridColor = rgb(LB_GRID_COLOR[0] / 255, LB_GRID_COLOR[1] / 255, LB_GRID_COLOR[2] / 255);
   const sepColor = rgb(LB_SEPARATOR_COLOR[0] / 255, LB_SEPARATOR_COLOR[1] / 255, LB_SEPARATOR_COLOR[2] / 255);
   const accentX = col === "left" ? LB_ACCENT_X_LEFT : LB_ACCENT_X_RIGHT;
   const hlineX0 = col === "left" ? accentX : LB_HLINE_RIGHT_X0;
   const hlineX1 = col === "left" ? LB_HLINE_LEFT_X1 : accentX;
   const top = top0;
-  const bottom = top0 + rowCount * rowH;
+  const bottom = top0 + lbTotalHeight(rowH, rowCount);
 
   for (const x of [accentX, dividerX]) {
     const start = toPdfPoint(x, top);
@@ -283,7 +351,7 @@ function drawLaborGrid(page: PDFPage, top0: number, rowH: number, rowCount: numb
   }
 
   for (let i = 1; i < rowCount; i++) {
-    const y = top0 + i * rowH;
+    const y = top0 + lbRowOffset(rowH, i);
     const start = toPdfPoint(hlineX0, y);
     const end = toPdfPoint(hlineX1, y);
     page.drawLine({ start, end, thickness: LB_SEPARATOR_THICKNESS, color: sepColor });
@@ -296,7 +364,7 @@ function drawLaborPage(page: PDFPage, config: LaborTableConfig, overrides: Recor
   function block(
     name: "labor" | "tire" | "extra" | "forklift",
     top0: number,
-    rowH: number,
+    rowH: LbRowHeights,
     col: "left" | "right",
     bgList: RGB | RGB[],
   ) {
@@ -330,14 +398,16 @@ function drawLaborPage(page: PDFPage, config: LaborTableConfig, overrides: Recor
         col === "left"
           ? { ...valFullRect, left: dividerX + gap, width: rect.left + rect.width - (dividerX + gap) }
           : { ...valFullRect, left: dividerX + gap, width: LB_VALUE_X1_RIGHT - (dividerX + gap) };
-      drawField(page, font, lblVal, lblTextRect, "left", bg);
+      drawWrappedLabel(page, font, lblVal, lblTextRect, bg);
       drawField(page, font, `${valVal} ${config.unit}`, valTextRect, "right", bg);
     });
     drawLaborGrid(page, top0, rowH, config.blocks[name].length, col, LB_DIVIDER_X[name]);
   }
 
   block("labor", LB_PAIR1_TOP, LB_PAIR1_ROW_H, "left", LB_ROW_BG_PAIR1);
-  block("tire", LB_PAIR1_TOP, LB_PAIR1_ROW_H, "right", LB_ROW_BG_PAIR1);
+  // Tire has its own per-row heights (see LB_TIRE_ROW_H) — its rows aren't
+  // uniform like the rest of the table.
+  block("tire", LB_PAIR1_TOP, LB_TIRE_ROW_H, "right", LB_ROW_BG_PAIR1);
   block("extra", LB_PAIR2_TOP, LB_PAIR2_ROW_H, "left", LB_ROW_BG_PAIR2_LEFT);
   block("forklift", LB_PAIR2_RIGHT_TOP, LB_PAIR2_RIGHT_ROW_H, "right", LB_ROW_BG_PAIR2_RIGHT);
 }

@@ -23,11 +23,32 @@ export function eqBoxRect(rowStart: number, rowSpan: number, colIdx: number): Bo
   return { left, top, width, height };
 }
 
+// A constant per-row height for most labor blocks, or an explicit array
+// for the ones whose rows genuinely aren't uniform in the source photo
+// (the tire block: 3 taller rows, then 7 shorter ones — see LB_TIRE_ROW_H).
+export type LbRowHeights = number | number[];
+
+export function lbRowOffset(rowH: LbRowHeights, rowIdx: number): number {
+  if (typeof rowH === "number") return rowIdx * rowH;
+  let sum = 0;
+  for (let i = 0; i < rowIdx; i++) sum += rowH[i];
+  return sum;
+}
+
+export function lbRowHeight(rowH: LbRowHeights, rowIdx: number): number {
+  return typeof rowH === "number" ? rowH : rowH[rowIdx];
+}
+
+export function lbTotalHeight(rowH: LbRowHeights, rowCount: number): number {
+  return typeof rowH === "number" ? rowH * rowCount : rowH.reduce((a, b) => a + b, 0);
+}
+
 /** Same idea for one labor-table row (either column of either pair). */
-export function lbBoxRect(top0: number, rowH: number, rowIdx: number, col: "left" | "right"): BoxRect {
-  const top = top0 + rowIdx * rowH;
+export function lbBoxRect(top0: number, rowH: LbRowHeights, rowIdx: number, col: "left" | "right"): BoxRect {
+  const top = top0 + lbRowOffset(rowH, rowIdx);
+  const height = lbRowHeight(rowH, rowIdx);
   const [left, width] = col === "left" ? [LB_LEFT_X0, LB_LEFT_X1 - LB_LEFT_X0] : [LB_RIGHT_X0, LB_RIGHT_X1 - LB_RIGHT_X0];
-  return { left, top, width, height: rowH };
+  return { left, top, width, height };
 }
 
 export type RGB = [number, number, number];
@@ -132,6 +153,13 @@ export const LB_RIGHT_X1 = 2468;
 // high). Pair 2's labels wrap to two lines, so its rows are taller.
 export const LB_PAIR1_TOP = 564.0;
 export const LB_PAIR1_ROW_H = 59.0;
+// The tire block's 10 rows are NOT uniform height like the rest of the
+// table (measured against the source photo): the first 3 are taller
+// (~61px) than the remaining 7 (~46.5px). Using LB_PAIR1_ROW_H uniformly
+// here overshoots the block's true bottom edge by ~20px, painting the row
+// background into the blank margin before the next yellow header — visible
+// as a mismatched color band touching it.
+export const LB_TIRE_ROW_H: number[] = [60, 61.5, 61, 46.5, 46, 46.5, 47.5, 46, 46, 47];
 export const LB_PAIR2_TOP = 1359.0;
 export const LB_PAIR2_ROW_H = 98.0;
 // Forklift Mobilization (pair 2's right column) isn't vertically synced with
