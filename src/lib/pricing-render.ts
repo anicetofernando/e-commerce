@@ -15,10 +15,10 @@ import {
   LB_LEFT_X1,
   LB_RIGHT_X0,
   LB_RIGHT_X1,
-  LB_PAIR1_HB,
-  LB_PAIR2_HB,
-  LB_ROW_H,
-  LB_TOP_PAD,
+  LB_PAIR1_TOP,
+  LB_PAIR1_ROW_H,
+  LB_PAIR2_TOP,
+  LB_PAIR2_ROW_H,
   LB_ROW_BG_PAIR1,
   LB_ROW_BG_PAIR2_LEFT,
   LB_ROW_BG_PAIR2_RIGHT,
@@ -45,14 +45,15 @@ function eqStyle(rowStart: number, rowSpan: number, colIdx: number, bg: string):
  * ?? <printed original>`, and `data-orig` always holds the printed original
  * so the client JS can tell an edited field apart from an untouched one.
  */
-export function renderEquipmentTable(config: EquipmentTableConfig, overrides: Record<string, string>): string {
+export function renderEquipmentTable(
+  config: EquipmentTableConfig,
+  overrides: Record<string, string>,
+  sharedDiesel: string,
+  sharedDieselOrig: string,
+): string {
   const prefix = config.prefix;
-  const dieselKey = `${prefix}-diesel`;
-  const fxKey = `${prefix}-fx`;
-  const dieselOrig = "30";
-  const dieselVal = overrides[dieselKey] ?? dieselOrig;
-  const fxVal = overrides[fxKey] ?? "";
-  const dieselChanged = dieselVal !== dieselOrig;
+  const dieselVal = sharedDiesel;
+  const dieselChanged = dieselVal !== sharedDieselOrig;
 
   const groupOf = new Map<number, { gi: number; start: number; span: number }>();
   EQ_GROUPS.forEach(([start, span], gi) => {
@@ -147,14 +148,7 @@ export function renderEquipmentTable(config: EquipmentTableConfig, overrides: Re
     html.push(`</div>`);
   });
 
-  const controls = `
-    <div class="pricing-controls">
-      <div class="field"><label for="${dieselKey}">${esc(config.dieselLabel)}</label><input id="${dieselKey}" name="${dieselKey}" class="diesel-input" value="${esc(dieselVal)}" data-orig="${dieselOrig}" data-role="diesel" inputmode="decimal"></div>
-      <div class="field"><label for="${fxKey}">${esc(config.fxLabel)}</label><input id="${fxKey}" name="${fxKey}" class="fx-input" value="${esc(fxVal)}" placeholder="${esc(config.fxPlaceholder)}" data-role="fx" inputmode="decimal"></div>
-      <p class="hint">${esc(config.hint)}</p>
-    </div>`;
-
-  return `${controls}
+  return `
     <div class="pricing-card">
       <div class="pricing-frame">
         <img class="pricing-bg" src="${config.bgImage}" alt="${esc(config.title)}" width="${IMG_W}" height="${IMG_H}">
@@ -168,13 +162,19 @@ ${html.join("\n")}
 export function renderLaborTable(config: LaborTableConfig, overrides: Record<string, string>): string {
   const prefix = config.prefix;
 
-  function lbStyle(pairHb: number, rowIdx: number, col: "left" | "right", bg: string): string {
-    const top = pairHb + LB_TOP_PAD + rowIdx * LB_ROW_H;
+  function lbStyle(top0: number, rowH: number, rowIdx: number, col: "left" | "right", bg: string): string {
+    const top = top0 + rowIdx * rowH;
     const [left, width] = col === "left" ? [LB_LEFT_X0, LB_LEFT_X1 - LB_LEFT_X0] : [LB_RIGHT_X0, LB_RIGHT_X1 - LB_RIGHT_X0];
-    return `left:${pct(left, IMG_W)}%;top:${pct(top, IMG_H)}%;width:${pct(width, IMG_W)}%;height:${pct(LB_ROW_H, IMG_H)}%;--cellbg:${bg};`;
+    return `left:${pct(left, IMG_W)}%;top:${pct(top, IMG_H)}%;width:${pct(width, IMG_W)}%;height:${pct(rowH, IMG_H)}%;--cellbg:${bg};`;
   }
 
-  function block(name: "labor" | "tire" | "extra" | "forklift", pairHb: number, col: "left" | "right", bgList: string | string[]): string {
+  function block(
+    name: "labor" | "tire" | "extra" | "forklift",
+    top0: number,
+    rowH: number,
+    col: "left" | "right",
+    bgList: string | string[],
+  ): string {
     return config.blocks[name]
       .map((item, i) => {
         const bg = Array.isArray(bgList) ? bgList[i] : bgList;
@@ -183,16 +183,16 @@ export function renderLaborTable(config: LaborTableConfig, overrides: Record<str
         const lblVal = overrides[lblKey] ?? item.label;
         const valVal = overrides[valKey] ?? item.value;
         const dirty = lblVal !== item.label || valVal !== item.value;
-        return `      <div class="ov ov-row${dirty ? " dirty" : ""}" style="${lbStyle(pairHb, i, col, bg)}"><input class="ov-text lbl-input" name="${lblKey}" value="${esc(lblVal)}" data-orig="${esc(item.label)}"><span class="ov-row-val"><input class="money-input labor-money" name="${valKey}" value="${esc(valVal)}" data-orig="${esc(item.value)}"><span class="ov-unit">${esc(config.unit)}</span></span></div>`;
+        return `      <div class="ov ov-row${dirty ? " dirty" : ""}" style="${lbStyle(top0, rowH, i, col, bg)}"><input class="ov-text lbl-input" name="${lblKey}" value="${esc(lblVal)}" data-orig="${esc(item.label)}"><span class="ov-row-val"><input class="money-input labor-money" name="${valKey}" value="${esc(valVal)}" data-orig="${esc(item.value)}"><span class="ov-unit">${esc(config.unit)}</span></span></div>`;
       })
       .join("\n");
   }
 
   const rows = [
-    block("labor", LB_PAIR1_HB, "left", rgb(LB_ROW_BG_PAIR1)),
-    block("tire", LB_PAIR1_HB, "right", rgb(LB_ROW_BG_PAIR1)),
-    block("extra", LB_PAIR2_HB, "left", LB_ROW_BG_PAIR2_LEFT.map(rgb)),
-    block("forklift", LB_PAIR2_HB, "right", LB_ROW_BG_PAIR2_RIGHT.map(rgb)),
+    block("labor", LB_PAIR1_TOP, LB_PAIR1_ROW_H, "left", rgb(LB_ROW_BG_PAIR1)),
+    block("tire", LB_PAIR1_TOP, LB_PAIR1_ROW_H, "right", rgb(LB_ROW_BG_PAIR1)),
+    block("extra", LB_PAIR2_TOP, LB_PAIR2_ROW_H, "left", LB_ROW_BG_PAIR2_LEFT.map(rgb)),
+    block("forklift", LB_PAIR2_TOP, LB_PAIR2_ROW_H, "right", LB_ROW_BG_PAIR2_RIGHT.map(rgb)),
   ].join("\n");
 
   return `

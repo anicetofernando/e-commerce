@@ -6,47 +6,6 @@
    original (".dirty") or is focused — otherwise the photo shows through
    untouched, so an unedited table is indistinguishable from the source PDF. */
 
-.pricing-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  align-items: flex-end;
-  background: #f4f6f9;
-  border: 1px solid #e2d9cc;
-  border-radius: 10px 10px 0 0;
-  padding: 14px 20px;
-}
-.pricing-controls .field label {
-  display: block;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #3e4c63;
-  margin-bottom: 4px;
-  font-weight: 600;
-}
-.pricing-controls .field input {
-  font: inherit;
-  font-size: 0.95rem;
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid #c8d0dc;
-  width: 140px;
-  background: #fff;
-  color: #1c1c1c;
-}
-.pricing-controls .field input:focus {
-  outline: 2px solid #3e4c63;
-  outline-offset: 1px;
-}
-.pricing-controls .hint {
-  font-size: 0.76rem;
-  color: #6b7280;
-  max-width: 280px;
-  line-height: 1.4;
-  margin: 0;
-}
-
 .pricing-card {
   border-radius: 0 0 10px 10px;
   overflow: hidden;
@@ -139,8 +98,10 @@ input.ov-plainnum.dirty {
 .ov-cell.dirty .sem,
 .ov-row:focus-within .ov-unit,
 .ov-row:focus-within .ov-row-val,
+.ov-row:focus-within .labor-money,
 .ov-row.dirty .ov-unit,
-.ov-row.dirty .ov-row-val {
+.ov-row.dirty .ov-row-val,
+.ov-row.dirty .labor-money {
   color: #1c1c1c;
 }
 .ov-total-cell:has(.mzn.show) {
@@ -265,8 +226,7 @@ input.ov-plainnum.dirty {
     margin: 0;
     padding: 0;
   }
-  .pricing-editor-chrome,
-  .pricing-controls {
+  .pricing-editor-chrome {
     display: none !important;
   }
   .pricing-section {

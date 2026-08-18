@@ -96,10 +96,14 @@ export const LB_LEFT_X0 = 58;
 export const LB_LEFT_X1 = LB_DIVIDER_L;
 export const LB_RIGHT_X0 = LB_DIVIDER_R;
 export const LB_RIGHT_X1 = 2468;
-export const LB_PAIR1_HB = 474.0;
-export const LB_PAIR2_HB = 1303.0;
-export const LB_ROW_H = 58.0;
-export const LB_TOP_PAD = 45.0;
+// Top of row 0 and row-to-row spacing, measured directly against the source
+// image (not derived from the header bar position — the two didn't share a
+// fixed offset, which is why the boxes used to sit almost a full row too
+// high). Pair 2's labels wrap to two lines, so its rows are taller.
+export const LB_PAIR1_TOP = 564.0;
+export const LB_PAIR1_ROW_H = 59.0;
+export const LB_PAIR2_TOP = 1359.0;
+export const LB_PAIR2_ROW_H = 98.0;
 
 export const LB_ROW_BG_PAIR1: RGB = [230, 230, 230];
 export const LB_ROW_BG_PAIR2_LEFT: RGB[] = [[230, 209, 192], [226, 197, 179]];
@@ -172,10 +176,6 @@ export type EquipmentTableConfig = {
   headers: [string, string, string, string, string, string, string];
   rows: EquipmentRow[];
   unLabels: string[];
-  fxLabel: string;
-  fxPlaceholder: string;
-  dieselLabel: string;
-  hint: string;
   bgImage: string;
 };
 
@@ -199,10 +199,6 @@ export const EQUIPMENT_TABLES: EquipmentTableConfig[] = [
     ],
     rows: EQ_ROWS_EN,
     unLabels: EQ_UN_EN,
-    fxLabel: "Exchange rate (USD→MZN)",
-    fxPlaceholder: "e.g. 64,50",
-    dieselLabel: "% Diesel",
-    hint: "Type today's rate to see the MZN equivalent under \"Total Day\". Change % Diesel to recalc the \"With Diesel\" column.",
     bgImage: "/precos/page-en-eq.jpg",
   },
   {
@@ -214,10 +210,6 @@ export const EQUIPMENT_TABLES: EquipmentTableConfig[] = [
     ],
     rows: EQ_ROWS_PT,
     unLabels: EQ_UN_PT,
-    fxLabel: "Câmbio (USD→MZN)",
-    fxPlaceholder: "ex: 64,50",
-    dieselLabel: "% Diesel",
-    hint: "Digite o câmbio do dia para ver o equivalente em MZN por baixo do \"Total/Dia\". Mude a % Diesel para recalcular a coluna \"Com Diesel\".",
     bgImage: "/precos/page-pt-eq.jpg",
   },
 ];

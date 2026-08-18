@@ -22,12 +22,13 @@ function fitToContainer(container: Element, el: HTMLElement) {
   }
 }
 
-function recalcRow(row: HTMLElement, dieselEl: HTMLInputElement | null, diesel: number, fx: number) {
+function recalcRow(row: HTMLElement, diesel: number, fx: number) {
   const semEl = row.querySelector<HTMLInputElement>(".sem");
   if (!semEl) return;
   const hoursRef = row.dataset.hoursRef;
   const hoursInput = hoursRef ? (document.getElementById(hoursRef) as HTMLInputElement | null) : null;
   const noDiesel = row.hasAttribute("data-nodiesel");
+  const dieselEl = document.getElementById("shared-diesel") as HTMLInputElement | null;
   const dieselChanged = dieselEl ? dieselEl.value !== dieselEl.dataset.orig : false;
   const hoursChanged = hoursInput ? hoursInput.value !== hoursInput.dataset.orig : false;
 
@@ -75,24 +76,21 @@ function recalcRow(row: HTMLElement, dieselEl: HTMLInputElement | null, diesel: 
   }
 }
 
-function recalcScope(triggerEl: HTMLElement, card: HTMLElement) {
-  const section = card.closest("section");
-  const controls = section?.querySelector(".pricing-controls");
-  const dieselEl = controls?.querySelector<HTMLInputElement>(".diesel-input") ?? null;
-  const fxEl = controls?.querySelector<HTMLInputElement>(".fx-input") ?? null;
-  const diesel = dieselEl ? Number(dieselEl.value.replace(",", ".")) || 0 : 0;
-  const fx = fxEl ? Number(fxEl.value.replace(",", ".")) || 0 : 0;
-
+// % Diesel and Câmbio are ONE shared pair of fields for the whole page (not
+// per-table), so a diesel/fx edit recalculates every equipment row-group on
+// the page; a price or hours edit only touches its own row/group.
+function recalcScope(triggerEl: HTMLInputElement, root: HTMLElement, diesel: number, fx: number) {
   let rows: HTMLElement[];
   if (triggerEl.matches(".sem")) {
     const rg = triggerEl.closest<HTMLElement>(".row-group");
     rows = rg ? [rg] : [];
   } else if (triggerEl.matches(".hours-input")) {
-    rows = Array.from(card.querySelectorAll<HTMLElement>(`.row-group[data-hours-ref="${triggerEl.id}"]`));
+    const card = triggerEl.closest<HTMLElement>(".pricing-card");
+    rows = card ? Array.from(card.querySelectorAll<HTMLElement>(`.row-group[data-hours-ref="${triggerEl.id}"]`)) : [];
   } else {
-    rows = Array.from(card.querySelectorAll<HTMLElement>(".row-group"));
+    rows = Array.from(root.querySelectorAll<HTMLElement>(".row-group"));
   }
-  rows.forEach((row) => recalcRow(row, dieselEl, diesel, fx));
+  rows.forEach((row) => recalcRow(row, diesel, fx));
 }
 
 function markDirty(el: HTMLInputElement) {
@@ -102,9 +100,42 @@ function markDirty(el: HTMLInputElement) {
   target.classList.toggle("dirty", changed);
 }
 
-export function PricingTableEditor({ sections }: { sections: PricingSection[] }) {
+export function PricingTableEditor({
+  sections,
+  sharedDiesel,
+  sharedDieselOrig,
+  sharedFx,
+}: {
+  sections: PricingSection[];
+  sharedDiesel: string;
+  sharedDieselOrig: string;
+  sharedFx: string;
+}) {
   const [state, formAction] = useActionState(savePricingTable, undefined);
   const rootRef = useRef<HTMLDivElement>(null);
+  // Captured once — the effect below injects this HTML exactly one time and
+  // never again, so a later re-render (e.g. after saving) can't touch it.
+  const initialSections = useRef(sections);
+
+  // Every field lives inside a section injected here as raw HTML, imperatively,
+  // OUTSIDE React's reconciliation (a plain DOM write, not dangerouslySetInnerHTML).
+  // This is deliberate: React re-renders this component after every save (the
+  // server action revalidates the route), and if the markup were JSX-managed,
+  // React would diff and rewrite it on that re-render — wiping out or duplicating
+  // whatever the browser's own DOM mutations (recalculated totals, dirty-state
+  // classes, this-run's edits) had done in the meantime. Writing it once, then
+  // leaving it alone, is what keeps one field's edit from disturbing any other.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    initialSections.current.forEach((s) => {
+      const el = root.querySelector<HTMLElement>(`section[data-section-id="${s.id}"]`);
+      if (el && !el.dataset.injected) {
+        el.innerHTML = s.html;
+        el.dataset.injected = "1";
+      }
+    });
+  }, []);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -114,18 +145,21 @@ export function PricingTableEditor({ sections }: { sections: PricingSection[] })
       const t = e.target as HTMLElement;
       if (!(t instanceof HTMLInputElement)) return;
       if (t.matches(".sem, .hours-input, .diesel-input, .fx-input")) {
-        const card = t.closest<HTMLElement>(".pricing-card");
-        if (card) recalcScope(t, card);
+        const dieselEl = document.getElementById("shared-diesel") as HTMLInputElement | null;
+        const fxEl = document.getElementById("shared-fx") as HTMLInputElement | null;
+        const diesel = dieselEl ? Number(dieselEl.value.replace(",", ".")) || 0 : 0;
+        const fx = fxEl ? Number(fxEl.value.replace(/\./g, "").replace(",", ".")) || 0 : 0;
+        recalcScope(t, root, diesel, fx);
       }
     };
 
     const onFocusOut = (e: FocusEvent) => {
       const t = e.target as HTMLElement;
       if (!(t instanceof HTMLInputElement)) return;
-      if (t.matches(".money-input")) {
+      if (t.matches(".money-input, .fx-input")) {
         const n = Number(t.value.replace(/\./g, "").replace(",", ".")) || 0;
         t.value = new Intl.NumberFormat("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
-      } else if (t.matches(".plain-num-input, .hours-input")) {
+      } else if (t.matches(".plain-num-input, .hours-input, .diesel-input")) {
         t.value = String(Number(t.value.replace(",", ".")) || 0);
       }
       markDirty(t);
@@ -141,7 +175,39 @@ export function PricingTableEditor({ sections }: { sections: PricingSection[] })
 
   return (
     <div ref={rootRef}>
-      <div className="pricing-editor-chrome sticky top-0 z-10 -mx-6 mb-4 flex flex-wrap items-center gap-3 border-b border-ink-100 bg-white/95 px-6 py-3 backdrop-blur lg:-mx-8 lg:px-8">
+      <div className="pricing-editor-chrome sticky top-0 z-10 -mx-6 mb-4 flex flex-wrap items-end gap-5 border-b border-ink-100 bg-white/95 px-6 py-3 backdrop-blur lg:-mx-8 lg:px-8">
+        <div className="field">
+          <label className="mb-1 block text-[11px] font-bold tracking-wide text-ink-500 uppercase" htmlFor="shared-diesel">
+            % Diesel
+          </label>
+          <input
+            id="shared-diesel"
+            form="pricing-form"
+            name="shared-diesel"
+            className="diesel-input w-24 rounded-md border border-ink-300 px-2.5 py-1.5 text-sm"
+            defaultValue={sharedDiesel}
+            data-orig={sharedDieselOrig}
+            inputMode="decimal"
+          />
+        </div>
+        <div className="field">
+          <label className="mb-1 block text-[11px] font-bold tracking-wide text-ink-500 uppercase" htmlFor="shared-fx">
+            Câmbio (USD→MZN)
+          </label>
+          <input
+            id="shared-fx"
+            form="pricing-form"
+            name="shared-fx"
+            className="fx-input w-32 rounded-md border border-ink-300 px-2.5 py-1.5 text-sm"
+            defaultValue={sharedFx}
+            placeholder="ex: 64,50"
+            inputMode="decimal"
+          />
+        </div>
+        <p className="max-w-xs text-xs text-ink-500">
+          Válido para as duas tabelas de equipamentos. Preencha o câmbio para ver o equivalente em MZN por baixo do
+          &quot;Total/Dia&quot;.
+        </p>
         <nav className="flex flex-wrap gap-2">
           {sections.map((s) => (
             <a
@@ -162,7 +228,7 @@ export function PricingTableEditor({ sections }: { sections: PricingSection[] })
         </button>
       </div>
 
-      <form action={formAction}>
+      <form id="pricing-form" action={formAction}>
         <div className="pricing-editor-chrome mb-4 flex items-center gap-3">
           <SubmitButton>Guardar Alterações</SubmitButton>
           <FormAlert message={state?.message ?? state?.error} tone={state?.error ? "error" : "success"} />
@@ -170,13 +236,12 @@ export function PricingTableEditor({ sections }: { sections: PricingSection[] })
 
         <div className="space-y-9">
           {sections.map((s) => (
-            <section key={s.id} id={s.id} className="pricing-section scroll-mt-20" dangerouslySetInnerHTML={{ __html: s.html }} />
+            <section key={s.id} id={s.id} data-section-id={s.id} className="pricing-section scroll-mt-20" />
           ))}
         </div>
 
         <div className="pricing-editor-chrome mt-6 flex items-center gap-3">
           <SubmitButton>Guardar Alterações</SubmitButton>
-          <FormAlert message={state?.message ?? state?.error} tone={state?.error ? "error" : "success"} />
         </div>
       </form>
     </div>
