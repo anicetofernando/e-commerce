@@ -42,6 +42,14 @@ export const EQ_ROW_H = (1506.0 - 478.0) / 17;
 // 8 boundaries -> 7 columns: equip, service, un, hours, sem, com, total
 export const EQ_COLS = [30, 595, 988, 1135, 1331, 1712, 2093, 2486];
 
+// The printed sheet has thin decorative divider lines (grid) that the opaque
+// per-field background rectangles necessarily paint over — these are redrawn
+// on top afterward so the exported PDF matches the original pixel-for-pixel.
+// Values pixel-measured directly from the source photo (native 2526×1786).
+export const EQ_GRID_COLOR: RGB = [204, 118, 57];
+export const EQ_GRID_V_X = [604, 1011, 1111, 1288, 1659, 2038];
+export const EQ_GRID_THICKNESS = 2.2;
+
 export const EQ_ROW_BG: RGB[] = [
   [226, 226, 226], [230, 230, 230], [230, 230, 230], [230, 230, 230],
   [230, 229, 227], [230, 229, 225], [228, 224, 221], [230, 225, 222],

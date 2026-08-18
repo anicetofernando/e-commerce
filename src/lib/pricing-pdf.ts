@@ -13,6 +13,12 @@ import {
   EQ_NODIESEL,
   EQ_SERVICE_MERGE,
   EQ_ROW_BG,
+  EQ_ROW0_TOP,
+  EQ_ROW_H,
+  EQ_COLS,
+  EQ_GRID_COLOR,
+  EQ_GRID_V_X,
+  EQ_GRID_THICKNESS,
   LB_PAIR1_TOP,
   LB_PAIR1_ROW_H,
   LB_PAIR2_TOP,
@@ -46,6 +52,35 @@ function toPdfRect(r: BoxRect) {
   const height = r.height * SY;
   const y = PAGE_H - r.top * SY - height;
   return { x, y, width, height };
+}
+
+function toPdfPoint(px: number, py: number) {
+  return { x: px * SX, y: PAGE_H - py * SY };
+}
+
+/** Redraws the printed sheet's thin decorative grid — the group divider
+ * rules and column dividers — since the opaque field backgrounds painted
+ * over them already. Drawn last, on top of every field on the page. */
+function drawEquipmentGrid(page: PDFPage) {
+  const color = rgb(EQ_GRID_COLOR[0] / 255, EQ_GRID_COLOR[1] / 255, EQ_GRID_COLOR[2] / 255);
+  const tableTop = EQ_ROW0_TOP;
+  const tableBottom = EQ_ROW0_TOP + 17 * EQ_ROW_H;
+  const left = EQ_COLS[0];
+  const right = EQ_COLS[EQ_COLS.length - 1];
+
+  EQ_GRID_V_X.forEach((x) => {
+    const start = toPdfPoint(x, tableTop);
+    const end = toPdfPoint(x, tableBottom);
+    page.drawLine({ start, end, thickness: EQ_GRID_THICKNESS, color });
+  });
+
+  EQ_GROUPS.forEach(([start], gi) => {
+    if (gi === 0) return; // top edge of the first group is the table's outer border, not a divider
+    const y = EQ_ROW0_TOP + start * EQ_ROW_H;
+    const s = toPdfPoint(left, y);
+    const e = toPdfPoint(right, y);
+    page.drawLine({ start: s, end: e, thickness: EQ_GRID_THICKNESS, color });
+  });
 }
 
 /** Shrink font size until `text` fits `maxWidth`, never below MIN_SIZE — the
@@ -163,6 +198,8 @@ function drawEquipmentPage(
     }
     drawField(page, font, `${total} USD`, eqBoxRect(i, 1, 6), "center", bg);
   });
+
+  drawEquipmentGrid(page);
 }
 
 function drawLaborPage(page: PDFPage, config: LaborTableConfig, overrides: Record<string, string>, font: PDFFont) {
