@@ -13,6 +13,7 @@ type Settings = {
   email: string;
   address: string;
   hours: string;
+  usdExchangeRate: number;
 };
 
 export function SiteSettingsForm({ settings }: { settings: Settings }) {
@@ -59,6 +60,15 @@ export function SiteSettingsForm({ settings }: { settings: Settings }) {
         <Label>Horário de Funcionamento</Label>
         <Input name="hours" defaultValue={settings.hours} required />
         <FieldError messages={state?.errors?.hours} />
+      </div>
+
+      <div>
+        <Label>Taxa de Câmbio (MZN por 1 USD)</Label>
+        <Input name="usdExchangeRate" type="number" min="0" step="0.0001" defaultValue={settings.usdExchangeRate} required />
+        <p className="mt-1 text-xs text-ink-400">
+          Usada para converter o total da encomenda para USD no pagamento por cartão internacional (Stripe não liquida em MZN).
+        </p>
+        <FieldError messages={state?.errors?.usdExchangeRate} />
       </div>
 
       <SubmitButton>Guardar Definições</SubmitButton>

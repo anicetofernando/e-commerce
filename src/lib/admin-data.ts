@@ -155,7 +155,13 @@ export async function getAdminOrders(params: { status?: string; page?: number })
   ]);
 
   return {
-    orders: orders.map((o) => ({ ...o, subtotal: Number(o.subtotal), shippingCost: Number(o.shippingCost), total: Number(o.total) })),
+    orders: orders.map((o) => ({
+      ...o,
+      subtotal: Number(o.subtotal),
+      shippingCost: Number(o.shippingCost),
+      discountAmount: Number(o.discountAmount),
+      total: Number(o.total),
+    })),
     total,
     page,
     totalPages: Math.max(1, Math.ceil(total / PAGE_SIZE)),
@@ -172,6 +178,7 @@ export async function getAdminOrderById(id: string) {
     ...order,
     subtotal: Number(order.subtotal),
     shippingCost: Number(order.shippingCost),
+    discountAmount: Number(order.discountAmount),
     total: Number(order.total),
     items: order.items.map((item) => ({ ...item, unitPrice: Number(item.unitPrice), lineTotal: Number(item.lineTotal) })),
   };
@@ -299,6 +306,27 @@ export async function getAdminMessages(params: { status?: "nao-lidas" | "lidas";
   ]);
 
   return { messages, total, page, totalPages: Math.max(1, Math.ceil(total / PAGE_SIZE)) };
+}
+
+// ---------------------------------------------------------------------------
+// Newsletter subscribers
+// ---------------------------------------------------------------------------
+
+export async function getAdminNewsletterSubscribers() {
+  return prisma.newsletterSubscriber.findMany({ orderBy: { createdAt: "desc" } });
+}
+
+// ---------------------------------------------------------------------------
+// Coupons
+// ---------------------------------------------------------------------------
+
+export async function getAdminCoupons() {
+  const coupons = await prisma.coupon.findMany({ orderBy: { createdAt: "desc" } });
+  return coupons.map((c) => ({
+    ...c,
+    value: Number(c.value),
+    minOrderValue: c.minOrderValue ? Number(c.minOrderValue) : null,
+  }));
 }
 
 // ---------------------------------------------------------------------------

@@ -15,7 +15,7 @@ const FAQS = [
   {
     question: "Quais são os métodos de pagamento disponíveis?",
     answer:
-      "Aceitamos transferência bancária, M-Pesa, e-Mola e numerário na entrega (sujeito a confirmação e disponibilidade na sua zona). Após finalizar a encomenda, a nossa equipa entra em contacto para confirmar os detalhes do pagamento.",
+      "Aceitamos transferência bancária, M-Pesa, e-Mola, numerário na entrega (sujeito a confirmação e disponibilidade na sua zona) e cartão internacional de débito/crédito, processado de imediato online. Para os restantes métodos, após finalizar a encomenda, a nossa equipa entra em contacto para confirmar os detalhes do pagamento.",
   },
   {
     question: "Para onde fazem entregas e quanto tempo demora?",

@@ -72,6 +72,12 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                 <span>Subtotal</span>
                 <span>{formatCurrency(order.subtotal)}</span>
               </div>
+              {order.discountAmount > 0 && (
+                <div className="flex justify-between text-green-700">
+                  <span>Desconto{order.couponCode ? ` (${order.couponCode})` : ""}</span>
+                  <span>-{formatCurrency(order.discountAmount)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-ink-600">
                 <span>Envio</span>
                 <span>{formatCurrency(order.shippingCost)}</span>
@@ -140,7 +146,13 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
           <div className="rounded-xl border border-ink-100 bg-white p-5">
             <h2 className="mb-4 text-sm font-bold text-ink-900 uppercase">Atualizar Estado</h2>
-            <OrderStatusForm orderId={order.id} status={order.status} paymentStatus={order.paymentStatus} />
+            <OrderStatusForm
+              orderId={order.id}
+              status={order.status}
+              paymentStatus={order.paymentStatus}
+              trackingNumber={order.trackingNumber}
+              carrier={order.carrier}
+            />
           </div>
         </div>
       </div>

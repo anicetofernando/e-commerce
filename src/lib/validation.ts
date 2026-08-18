@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { EquipmentType, OrderStatus, PaymentMethod, PaymentStatus, Province, ProductCondition } from "@/generated/prisma/client";
+import { EquipmentType, OrderStatus, PaymentMethod, PaymentStatus, Province, ProductCondition, DiscountType } from "@/generated/prisma/client";
 
 export const signupSchema = z.object({
   name: z.string().trim().min(2, "O nome deve ter pelo menos 2 caracteres."),
@@ -27,6 +27,22 @@ export const loginSchema = z.object({
 
 export type LoginInput = z.infer<typeof loginSchema>;
 
+export const requestPasswordResetSchema = z.object({
+  email: z.email("Introduza um email válido.").trim().toLowerCase(),
+});
+
+export type RequestPasswordResetInput = z.infer<typeof requestPasswordResetSchema>;
+
+export const resetPasswordSchema = z.object({
+  password: z
+    .string()
+    .min(8, "A palavra-passe deve ter pelo menos 8 caracteres.")
+    .regex(/[a-zA-Z]/, "A palavra-passe deve conter pelo menos uma letra.")
+    .regex(/[0-9]/, "A palavra-passe deve conter pelo menos um número."),
+});
+
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
 export const addressSchema = z.object({
   label: z.string().trim().min(1, "Dê um nome a este endereço."),
   recipientName: z.string().trim().min(2, "Introduza o nome do destinatário."),
@@ -52,9 +68,16 @@ export const checkoutSchema = z.object({
   reference: z.string().trim().optional().or(z.literal("")),
   notes: z.string().trim().optional().or(z.literal("")),
   paymentMethod: z.enum(PaymentMethod),
+  couponCode: z.string().trim().optional().or(z.literal("")),
 });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
+
+export const applyCouponSchema = z.object({
+  code: z.string().trim().min(1, "Introduza um código."),
+});
+
+export type ApplyCouponInput = z.infer<typeof applyCouponSchema>;
 
 export const contactSchema = z.object({
   name: z.string().trim().min(2, "Introduza o seu nome."),
@@ -132,9 +155,27 @@ export const adminMachineModelSchema = z.object({
 
 export type AdminMachineModelInput = z.infer<typeof adminMachineModelSchema>;
 
+export const adminCouponSchema = z.object({
+  code: z
+    .string()
+    .trim()
+    .min(3, "O código deve ter pelo menos 3 caracteres.")
+    .transform((v) => v.toUpperCase()),
+  type: z.enum(DiscountType),
+  value: z.coerce.number().positive("O valor deve ser maior que zero."),
+  minOrderValue: z.coerce.number().positive().optional().or(z.literal("")),
+  maxUses: z.coerce.number().int().positive().optional().or(z.literal("")),
+  expiresAt: z.string().trim().optional().or(z.literal("")),
+  isActive: z.boolean().optional(),
+});
+
+export type AdminCouponInput = z.infer<typeof adminCouponSchema>;
+
 export const adminOrderUpdateSchema = z.object({
   status: z.enum(OrderStatus),
   paymentStatus: z.enum(PaymentStatus),
+  trackingNumber: z.string().trim().optional().or(z.literal("")),
+  carrier: z.string().trim().optional().or(z.literal("")),
 });
 
 export type AdminOrderUpdateInput = z.infer<typeof adminOrderUpdateSchema>;
@@ -217,6 +258,7 @@ export const adminSiteSettingsSchema = z.object({
   email: z.email("Introduza um email válido.").trim(),
   address: z.string().trim().min(5, "Introduza a morada."),
   hours: z.string().trim().min(5, "Introduza o horário."),
+  usdExchangeRate: z.coerce.number().positive("A taxa de câmbio deve ser maior que zero."),
 });
 
 export type AdminSiteSettingsInput = z.infer<typeof adminSiteSettingsSchema>;

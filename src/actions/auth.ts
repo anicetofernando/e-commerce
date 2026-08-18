@@ -1,10 +1,18 @@
 "use server";
 
+import crypto from "node:crypto";
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { createSession, deleteSession } from "@/lib/session";
-import { loginSchema, signupSchema } from "@/lib/validation";
+import { getCurrentUser } from "@/lib/auth";
+import { loginSchema, signupSchema, requestPasswordResetSchema, resetPasswordSchema } from "@/lib/validation";
+import { sendEmail, getSiteUrl } from "@/lib/email";
+import { passwordResetEmail, emailVerificationEmail } from "@/lib/email-templates";
+import { isWithinCooldown } from "@/lib/rate-limit";
+
+const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
+const RESET_REQUEST_COOLDOWN_MS = 2 * 60 * 1000;
 
 export type AuthFormState =
   | {
@@ -34,6 +42,7 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
+  const emailVerificationToken = crypto.randomBytes(32).toString("hex");
   const user = await prisma.user.create({
     data: {
       name,
@@ -41,8 +50,12 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
       passwordHash,
       phone: phone || null,
       company: company || null,
+      emailVerificationToken,
     },
   });
+
+  const verifyUrl = `${getSiteUrl()}/verificar-email/${emailVerificationToken}`;
+  await sendEmail({ to: user.email, subject: "Confirme o seu email", html: emailVerificationEmail(verifyUrl) });
 
   await createSession(user.id);
   redirect("/conta");
@@ -77,4 +90,82 @@ export async function login(_prevState: AuthFormState, formData: FormData): Prom
 export async function logout() {
   await deleteSession();
   redirect("/");
+}
+
+const GENERIC_RESET_MESSAGE = "Se existir uma conta com este email, enviámos um link de recuperação.";
+
+export async function requestPasswordReset(_prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
+  const validated = requestPasswordResetSchema.safeParse({ email: formData.get("email") });
+  if (!validated.success) {
+    return { errors: validated.error.flatten().fieldErrors };
+  }
+
+  const user = await prisma.user.findUnique({ where: { email: validated.data.email } });
+
+  // Always respond the same way whether the account exists, or a request was
+  // already made recently, so the form can't be used to enumerate registered
+  // emails or to spam a mailbox with reset links.
+  if (!user || isWithinCooldown(user.resetTokenExpiresAt, RESET_TOKEN_TTL_MS, RESET_REQUEST_COOLDOWN_MS)) {
+    return { message: GENERIC_RESET_MESSAGE };
+  }
+
+  const token = crypto.randomBytes(32).toString("hex");
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { resetToken: token, resetTokenExpiresAt: new Date(Date.now() + RESET_TOKEN_TTL_MS) },
+  });
+
+  const resetUrl = `${getSiteUrl()}/recuperar-senha/${token}`;
+  await sendEmail({ to: user.email, subject: "Recuperação de Palavra-passe", html: passwordResetEmail(resetUrl) });
+
+  return { message: GENERIC_RESET_MESSAGE };
+}
+
+export async function resetPassword(token: string, _prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
+  const validated = resetPasswordSchema.safeParse({ password: formData.get("password") });
+  if (!validated.success) {
+    return { errors: validated.error.flatten().fieldErrors };
+  }
+
+  const user = await prisma.user.findUnique({ where: { resetToken: token } });
+  if (!user || !user.resetTokenExpiresAt || user.resetTokenExpiresAt.getTime() < Date.now()) {
+    return { message: "Este link é inválido ou já expirou. Solicite um novo link de recuperação." };
+  }
+
+  const passwordHash = await bcrypt.hash(validated.data.password, 10);
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordHash, resetToken: null, resetTokenExpiresAt: null },
+  });
+
+  await createSession(user.id);
+  redirect(user.role === "ADMIN" ? "/admin" : "/conta");
+}
+
+export async function verifyEmail(token: string): Promise<{ success: boolean; message: string }> {
+  const user = await prisma.user.findUnique({ where: { emailVerificationToken: token } });
+  if (!user) {
+    return { success: false, message: "Este link de confirmação é inválido ou já foi utilizado." };
+  }
+
+  await prisma.user.update({ where: { id: user.id }, data: { emailVerified: true, emailVerificationToken: null } });
+  return { success: true, message: "Email confirmado com sucesso!" };
+}
+
+export async function resendVerificationEmail(): Promise<{ message: string }> {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { message: "Sessão expirada. Inicie sessão novamente." };
+  }
+  if (user.emailVerified) {
+    return { message: "O seu email já está confirmado." };
+  }
+
+  const token = crypto.randomBytes(32).toString("hex");
+  await prisma.user.update({ where: { id: user.id }, data: { emailVerificationToken: token } });
+
+  const verifyUrl = `${getSiteUrl()}/verificar-email/${token}`;
+  await sendEmail({ to: user.email, subject: "Confirme o seu email", html: emailVerificationEmail(verifyUrl) });
+
+  return { message: "Email de confirmação reenviado." };
 }

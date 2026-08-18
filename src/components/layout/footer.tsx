@@ -4,13 +4,14 @@ import { getCategories, getSiteSettings } from "@/lib/data";
 import { Container } from "@/components/ui/container";
 import { Logo } from "@/components/layout/logo";
 import { FacebookIcon, InstagramIcon, LinkedinIcon } from "@/components/layout/social-icons";
+import { NewsletterForm } from "@/components/layout/newsletter-form";
 
 export async function Footer() {
   const [categories, settings] = await Promise.all([getCategories(), getSiteSettings()]);
 
   return (
     <footer className="bg-ink-50 text-ink-600">
-      <Container className="grid grid-cols-1 gap-10 py-14 sm:grid-cols-2 lg:grid-cols-5">
+      <Container className="grid grid-cols-1 gap-10 py-14 sm:grid-cols-2 lg:grid-cols-6">
         <div className="sm:col-span-2 lg:col-span-2">
           <Logo />
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-ink-500">
@@ -75,6 +76,8 @@ export async function Footer() {
             </li>
           </ul>
         </div>
+
+        <NewsletterForm />
       </Container>
 
       <div className="border-t border-ink-200">

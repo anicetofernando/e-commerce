@@ -18,6 +18,7 @@ export const getCurrentUser = cache(async () => {
       company: true,
       taxId: true,
       role: true,
+      emailVerified: true,
       createdAt: true,
     },
   });
