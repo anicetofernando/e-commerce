@@ -236,13 +236,14 @@ export function PricingTableEditor({
             </a>
           ))}
         </nav>
-        <button
-          type="button"
-          onClick={() => window.print()}
+        <a
+          href="/admin/precos/pdf"
+          target="_blank"
+          rel="noopener noreferrer"
           className="ml-auto rounded-full border border-ink-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-ink-700 hover:bg-ink-50"
         >
           Descarregar PDF
-        </button>
+        </a>
       </div>
 
       <form id="pricing-form" action={formAction}>

@@ -10,6 +10,26 @@ export function pct(v: number, total: number): number {
   return Math.round((v / total) * 100000) / 1000;
 }
 
+export type BoxRect = { left: number; top: number; width: number; height: number };
+
+/** Pure pixel-space geometry (2526×1786 reference) for one equipment cell —
+ * shared by the on-screen overlay (converted to %) and the PDF export
+ * (converted to points), so the two can never drift apart. */
+export function eqBoxRect(rowStart: number, rowSpan: number, colIdx: number): BoxRect {
+  const top = EQ_ROW0_TOP + rowStart * EQ_ROW_H;
+  const height = EQ_ROW_H * rowSpan;
+  const left = EQ_COLS[colIdx];
+  const width = EQ_COLS[colIdx + 1] - EQ_COLS[colIdx];
+  return { left, top, width, height };
+}
+
+/** Same idea for one labor-table row (either column of either pair). */
+export function lbBoxRect(top0: number, rowH: number, rowIdx: number, col: "left" | "right"): BoxRect {
+  const top = top0 + rowIdx * rowH;
+  const [left, width] = col === "left" ? [LB_LEFT_X0, LB_LEFT_X1 - LB_LEFT_X0] : [LB_RIGHT_X0, LB_RIGHT_X1 - LB_RIGHT_X0];
+  return { left, top, width, height: rowH };
+}
+
 export type RGB = [number, number, number];
 export function rgb([r, g, b]: RGB): string {
   const h = (n: number) => n.toString(16).padStart(2, "0").toUpperCase();

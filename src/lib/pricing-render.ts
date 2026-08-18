@@ -4,17 +4,12 @@ import {
   IMG_H,
   pct,
   rgb,
-  EQ_ROW0_TOP,
-  EQ_ROW_H,
-  EQ_COLS,
+  eqBoxRect,
+  lbBoxRect,
   EQ_ROW_BG,
   EQ_GROUPS,
   EQ_NODIESEL,
   EQ_SERVICE_MERGE,
-  LB_LEFT_X0,
-  LB_LEFT_X1,
-  LB_RIGHT_X0,
-  LB_RIGHT_X1,
   LB_PAIR1_TOP,
   LB_PAIR1_ROW_H,
   LB_PAIR2_TOP,
@@ -34,11 +29,8 @@ function esc(s: string): string {
 }
 
 function eqStyle(rowStart: number, rowSpan: number, colIdx: number, bg: string): string {
-  const top = EQ_ROW0_TOP + rowStart * EQ_ROW_H;
-  const height = EQ_ROW_H * rowSpan;
-  const left = EQ_COLS[colIdx];
-  const width = EQ_COLS[colIdx + 1] - EQ_COLS[colIdx];
-  return `left:${pct(left, IMG_W)}%;top:${pct(top, IMG_H)}%;width:${pct(width, IMG_W)}%;height:${pct(height, IMG_H)}%;--cellbg:${bg};`;
+  const r = eqBoxRect(rowStart, rowSpan, colIdx);
+  return `left:${pct(r.left, IMG_W)}%;top:${pct(r.top, IMG_H)}%;width:${pct(r.width, IMG_W)}%;height:${pct(r.height, IMG_H)}%;--cellbg:${bg};`;
 }
 
 /**
@@ -165,9 +157,8 @@ export function renderLaborTable(config: LaborTableConfig, overrides: Record<str
   const prefix = config.prefix;
 
   function lbStyle(top0: number, rowH: number, rowIdx: number, col: "left" | "right", bg: string): string {
-    const top = top0 + rowIdx * rowH;
-    const [left, width] = col === "left" ? [LB_LEFT_X0, LB_LEFT_X1 - LB_LEFT_X0] : [LB_RIGHT_X0, LB_RIGHT_X1 - LB_RIGHT_X0];
-    return `left:${pct(left, IMG_W)}%;top:${pct(top, IMG_H)}%;width:${pct(width, IMG_W)}%;height:${pct(rowH, IMG_H)}%;--cellbg:${bg};`;
+    const r = lbBoxRect(top0, rowH, rowIdx, col);
+    return `left:${pct(r.left, IMG_W)}%;top:${pct(r.top, IMG_H)}%;width:${pct(r.width, IMG_W)}%;height:${pct(r.height, IMG_H)}%;--cellbg:${bg};`;
   }
 
   function block(
