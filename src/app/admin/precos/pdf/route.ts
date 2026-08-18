@@ -12,8 +12,9 @@ export async function GET() {
 
   const overrides = await getPricingTableOverrides();
   const sharedDiesel = overrides["shared-diesel"] ?? SHARED_DIESEL_ORIG;
+  const sharedFx = overrides["shared-fx"] ?? "";
 
-  const pdfBytes = await generatePricingPdf(overrides, sharedDiesel, SHARED_DIESEL_ORIG);
+  const pdfBytes = await generatePricingPdf(overrides, sharedDiesel, SHARED_DIESEL_ORIG, sharedFx);
 
   return new NextResponse(Buffer.from(pdfBytes), {
     headers: {

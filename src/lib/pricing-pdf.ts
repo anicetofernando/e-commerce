@@ -33,7 +33,7 @@ import {
   type EquipmentTableConfig,
   type LaborTableConfig,
 } from "@/lib/pricing-data";
-import { computeRow, parseLenient } from "@/lib/pricing-calc";
+import { computeRow, fmt2, parseLenient } from "@/lib/pricing-calc";
 
 // A4 landscape in PDF points — the same ratio as the source photos
 // (2526×1786 ≈ 841.89×595.28), so each page fills edge to edge with no
@@ -43,6 +43,7 @@ const PAGE_H = 595.28;
 const SX = PAGE_W / IMG_W;
 const SY = PAGE_H / IMG_H;
 const INK = rgb(28 / 255, 28 / 255, 28 / 255);
+const MZN_INK = rgb(122 / 255, 74 / 255, 31 / 255);
 const BASE_SIZE = 14.5;
 const MIN_SIZE = 6;
 
@@ -121,6 +122,47 @@ function drawField(
   page.drawText(text, { x, y, size, font, color: INK });
 }
 
+/** The Total cell doubles as the câmbio conversion display: once an admin
+ * fills in the shared USD→MZN rate, the on-screen editor shows a second,
+ * smaller "≈ X MZN" line under the total (see .ov-total-cell / .mzn in
+ * pricing.css) — this mirrors that exact two-line layout in the PDF so the
+ * export shows the same thing the editor does, not just the USD total. */
+function drawTotalField(page: PDFPage, font: PDFFont, totalText: string, mznText: string | null, rect: BoxRect, bg: RGB, padding = 4) {
+  const r = toPdfRect(rect);
+  page.drawRectangle({ x: r.x, y: r.y, width: r.width, height: r.height, color: rgb(bg[0] / 255, bg[1] / 255, bg[2] / 255) });
+  const maxWidth = Math.max(1, r.width - padding * 2);
+
+  if (!mznText) {
+    if (!totalText) return;
+    const size = fitSize(font, totalText, maxWidth, BASE_SIZE);
+    const textWidth = font.widthOfTextAtSize(totalText, size);
+    const x = r.x + (r.width - textWidth) / 2;
+    const y = r.y + (r.height - size) / 2 + size * 0.21;
+    page.drawText(totalText, { x, y, size, font, color: INK });
+    return;
+  }
+
+  let totalSize = fitSize(font, totalText, maxWidth, BASE_SIZE);
+  let mznSize = fitSize(font, mznText, maxWidth, totalSize * 0.78);
+  const lineMult = 1.15;
+  const vPad = 2;
+  while (totalSize > MIN_SIZE && (totalSize * lineMult + mznSize * lineMult) > r.height - vPad) {
+    totalSize -= 0.5;
+    mznSize = fitSize(font, mznText, maxWidth, totalSize * 0.78);
+  }
+
+  const totalWidth = font.widthOfTextAtSize(totalText, totalSize);
+  const mznWidth = font.widthOfTextAtSize(mznText, mznSize);
+  const mznLineH = mznSize * lineMult;
+
+  const blockBottom = r.y + (r.height - (totalSize * lineMult + mznLineH)) / 2;
+  const mznY = blockBottom + mznSize * 0.21;
+  const totalY = blockBottom + mznLineH + totalSize * 0.21;
+
+  page.drawText(totalText, { x: r.x + (r.width - totalWidth) / 2, y: totalY, size: totalSize, font, color: INK });
+  page.drawText(mznText, { x: r.x + (r.width - mznWidth) / 2, y: mznY, size: mznSize, font, color: MZN_INK });
+}
+
 async function loadImage(pdfDoc: PDFDocument, bgImage: string) {
   const filePath = path.join(process.cwd(), "public", bgImage);
   const bytes = await readFile(filePath);
@@ -135,9 +177,11 @@ function drawEquipmentPage(
   font: PDFFont,
   sharedDiesel: string,
   sharedDieselOrig: string,
+  sharedFx: string,
 ) {
   const prefix = config.prefix;
   const dieselChanged = sharedDiesel !== sharedDieselOrig;
+  const fx = parseLenient(sharedFx);
 
   const groupOf = new Map<number, { gi: number; start: number; span: number }>();
   EQ_GROUPS.forEach(([start, span], gi) => {
@@ -177,7 +221,7 @@ function drawEquipmentPage(
     const hoursValForCalc = overrides[`${hoursId}-hours`] ?? hoursOrig;
     const hoursChanged = hoursValForCalc !== hoursOrig;
 
-    const { com, total } = computeRow({
+    const { com, total, totalNum } = computeRow({
       sem: semVal,
       semOrig: row.sem,
       comOrig: row.com,
@@ -196,7 +240,11 @@ function drawEquipmentPage(
     } else {
       drawField(page, font, `${com} USD`, eqBoxRect(i, 1, 5), "center", bg);
     }
-    drawField(page, font, `${total} USD`, eqBoxRect(i, 1, 6), "center", bg);
+    // "≈" isn't in WinAnsi (StandardFonts.Helvetica's encoding) — pdf-lib
+    // throws trying to embed it, unlike the on-screen editor which can show
+    // the real glyph in any browser font. "~" is the closest WinAnsi has.
+    const mznText = fx > 0 ? `~ ${fmt2(totalNum * fx)} MZN` : null;
+    drawTotalField(page, font, `${total} USD`, mznText, eqBoxRect(i, 1, 6), bg);
   });
 
   drawEquipmentGrid(page);
@@ -237,6 +285,7 @@ export async function generatePricingPdf(
   overrides: Record<string, string>,
   sharedDiesel: string,
   sharedDieselOrig: string,
+  sharedFx: string,
 ): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -245,7 +294,7 @@ export async function generatePricingPdf(
     const page = pdfDoc.addPage([PAGE_W, PAGE_H]);
     const img = await loadImage(pdfDoc, config.bgImage);
     page.drawImage(img, { x: 0, y: 0, width: PAGE_W, height: PAGE_H });
-    drawEquipmentPage(pdfDoc, page, config, overrides, font, sharedDiesel, sharedDieselOrig);
+    drawEquipmentPage(pdfDoc, page, config, overrides, font, sharedDiesel, sharedDieselOrig, sharedFx);
   }
 
   for (const config of LABOR_TABLES) {
