@@ -144,6 +144,43 @@ export const LB_ROW_BG_PAIR1: RGB = [230, 230, 230];
 export const LB_ROW_BG_PAIR2_LEFT: RGB[] = [[230, 209, 192], [226, 197, 179]];
 export const LB_ROW_BG_PAIR2_RIGHT: RGB[] = [[234, 201, 184], [231, 196, 176]];
 
+// A second, subtler layer of decorative structure on top of the row
+// backgrounds — same problem as the equipment grid (the opaque field
+// backgrounds paint over it), measured the same way: pixel-sampled directly
+// against the source photo. Distinct from LB_DIVIDER_L/R (the thick bar
+// between the two half-page columns), which nothing ever paints over.
+export const LB_GRID_COLOR: RGB = [188, 118, 78];
+export const LB_GRID_THICKNESS = 0.75;
+export const LB_SEPARATOR_COLOR: RGB = [251, 251, 251];
+export const LB_SEPARATOR_THICKNESS = 0.6;
+// Outer content margin — a thin vertical rule inset from the block's outer
+// edge, same x on every block on that side.
+export const LB_ACCENT_X_LEFT = 347;
+export const LB_ACCENT_X_RIGHT = 2181;
+// Left-column labels (labor, extra fees) start well clear of the accent
+// line's gutter in the original — not flush against the block's own left
+// edge, which is where the field box (and its background fill) still
+// starts. Right-column labels sit right after the thick center divider
+// with only normal padding, so they need no equivalent adjustment.
+export const LB_LABEL_X0_LEFT = 372;
+// Mirror on the other side: right-column values (tire, forklift) end well
+// clear of their accent line's gutter — a wide value like "18.400,00 MZN"
+// would otherwise run right up into the line if simply right-aligned to
+// the field box's true right edge.
+export const LB_VALUE_X1_RIGHT = 2156;
+// Horizontal row separators stop short of the thick center divider by a
+// fixed gutter (measured, not derived) rather than spanning the full width.
+export const LB_HLINE_LEFT_X1 = 1092;
+export const LB_HLINE_RIGHT_X0 = 1220;
+// Label/value divider x — hand-placed per column in the original, so it
+// isn't a fixed fraction of the block width; measured per block.
+export const LB_DIVIDER_X: Record<"labor" | "tire" | "extra" | "forklift", number> = {
+  labor: 756,
+  tire: 1886,
+  extra: 785,
+  forklift: 1886,
+};
+
 export type LaborItem = { label: string; value: string };
 export type LaborBlocks = { labor: LaborItem[]; tire: LaborItem[]; extra: LaborItem[]; forklift: LaborItem[] };
 

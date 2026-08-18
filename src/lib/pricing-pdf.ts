@@ -28,6 +28,18 @@ import {
   LB_ROW_BG_PAIR1,
   LB_ROW_BG_PAIR2_LEFT,
   LB_ROW_BG_PAIR2_RIGHT,
+  LB_GRID_COLOR,
+  LB_GRID_THICKNESS,
+  LB_SEPARATOR_COLOR,
+  LB_SEPARATOR_THICKNESS,
+  LB_ACCENT_X_LEFT,
+  LB_ACCENT_X_RIGHT,
+  LB_HLINE_LEFT_X1,
+  LB_HLINE_RIGHT_X0,
+  LB_DIVIDER_X,
+  LB_LEFT_X0,
+  LB_LABEL_X0_LEFT,
+  LB_VALUE_X1_RIGHT,
   EQUIPMENT_TABLES,
   LABOR_TABLES,
   type EquipmentTableConfig,
@@ -250,6 +262,34 @@ function drawEquipmentPage(
   drawEquipmentGrid(page);
 }
 
+/** Redraws the labor blocks' second, subtler layer of decorative structure
+ * that the opaque field backgrounds erase: the outer content-margin accent
+ * rule, the label/value divider, and the white row separators — distinct
+ * from LB_DIVIDER_L/R (the thick bar between the two half-page columns),
+ * which nothing paints over and so needs no redrawing. */
+function drawLaborGrid(page: PDFPage, top0: number, rowH: number, rowCount: number, col: "left" | "right", dividerX: number) {
+  const gridColor = rgb(LB_GRID_COLOR[0] / 255, LB_GRID_COLOR[1] / 255, LB_GRID_COLOR[2] / 255);
+  const sepColor = rgb(LB_SEPARATOR_COLOR[0] / 255, LB_SEPARATOR_COLOR[1] / 255, LB_SEPARATOR_COLOR[2] / 255);
+  const accentX = col === "left" ? LB_ACCENT_X_LEFT : LB_ACCENT_X_RIGHT;
+  const hlineX0 = col === "left" ? accentX : LB_HLINE_RIGHT_X0;
+  const hlineX1 = col === "left" ? LB_HLINE_LEFT_X1 : accentX;
+  const top = top0;
+  const bottom = top0 + rowCount * rowH;
+
+  for (const x of [accentX, dividerX]) {
+    const start = toPdfPoint(x, top);
+    const end = toPdfPoint(x, bottom);
+    page.drawLine({ start, end, thickness: LB_GRID_THICKNESS, color: gridColor });
+  }
+
+  for (let i = 1; i < rowCount; i++) {
+    const y = top0 + i * rowH;
+    const start = toPdfPoint(hlineX0, y);
+    const end = toPdfPoint(hlineX1, y);
+    page.drawLine({ start, end, thickness: LB_SEPARATOR_THICKNESS, color: sepColor });
+  }
+}
+
 function drawLaborPage(page: PDFPage, config: LaborTableConfig, overrides: Record<string, string>, font: PDFFont) {
   const prefix = config.prefix;
 
@@ -268,11 +308,32 @@ function drawLaborPage(page: PDFPage, config: LaborTableConfig, overrides: Recor
       const lblVal = overrides[lblKey] ?? item.label;
       const valVal = overrides[valKey] ?? item.value;
 
-      const lblRect: BoxRect = { ...rect, width: rect.width * 0.6 };
-      const valRect: BoxRect = { ...rect, left: rect.left + rect.width * 0.6, width: rect.width * 0.4 };
-      drawField(page, font, lblVal, lblRect, "left", bg);
-      drawField(page, font, `${valVal} ${config.unit}`, valRect, "right", bg);
+      const lblFullRect: BoxRect = { ...rect, width: rect.width * 0.6 };
+      const valFullRect: BoxRect = { ...rect, left: rect.left + rect.width * 0.6, width: rect.width * 0.4 };
+      drawField(page, font, "", lblFullRect, "left", bg); // background only, full width
+      drawField(page, font, "", valFullRect, "right", bg); // background only, full width
+
+      // Text itself is boxed to the TRUE divider position (LB_DIVIDER_X,
+      // measured against the source photo) rather than the naive 60/40
+      // split above — that split only ever existed to size the background
+      // fill and editable-field hit areas, and doesn't match where the
+      // original photo's divider line actually sits. The outer edge (label
+      // on the left side, value on the right) is boxed to the accent-line
+      // gutter for the same reason: erasing the redrawn grid with overlap.
+      const gap = 20;
+      const dividerX = LB_DIVIDER_X[name];
+      const lblTextRect: BoxRect =
+        col === "left"
+          ? { ...lblFullRect, left: LB_LABEL_X0_LEFT, width: dividerX - gap - LB_LABEL_X0_LEFT }
+          : { ...lblFullRect, width: dividerX - gap - rect.left };
+      const valTextRect: BoxRect =
+        col === "left"
+          ? { ...valFullRect, left: dividerX + gap, width: rect.left + rect.width - (dividerX + gap) }
+          : { ...valFullRect, left: dividerX + gap, width: LB_VALUE_X1_RIGHT - (dividerX + gap) };
+      drawField(page, font, lblVal, lblTextRect, "left", bg);
+      drawField(page, font, `${valVal} ${config.unit}`, valTextRect, "right", bg);
     });
+    drawLaborGrid(page, top0, rowH, config.blocks[name].length, col, LB_DIVIDER_X[name]);
   }
 
   block("labor", LB_PAIR1_TOP, LB_PAIR1_ROW_H, "left", LB_ROW_BG_PAIR1);
