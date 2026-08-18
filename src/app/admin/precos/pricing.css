@@ -248,7 +248,10 @@ input.ov-plainnum.dirty {
     color-adjust: exact;
   }
   .ov-cell,
-  .ov-row {
+  .ov-row,
+  input.ov-text,
+  input.ov-money,
+  input.ov-plainnum {
     background: var(--cellbg) !important;
   }
   input.ov-text,
@@ -256,7 +259,6 @@ input.ov-plainnum.dirty {
   input.ov-plainnum,
   .lbl-input {
     color: #1c1c1c !important;
-    background: transparent !important;
   }
   .ov-cell .com,
   .ov-cell .total,

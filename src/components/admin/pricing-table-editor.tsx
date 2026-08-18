@@ -100,6 +100,20 @@ function markDirty(el: HTMLInputElement) {
   target.classList.toggle("dirty", changed);
 }
 
+// A labor-row label/value is a single-line <input>, but several of the
+// printed originals wrap to two lines in their (narrow) column — "Taxa
+// Domingos/Feriados (por técnico)", "Camião com Rebaixada (Até 30
+// Toneladas)". Without this, that text just runs past the row's edge and
+// gets clipped. Shrinking it to fit is the same trick recalcRow already
+// uses for a wider recalculated total.
+function fitLaborField(el: HTMLElement) {
+  fitToContainer(el, el);
+}
+
+function fitAllLaborFields(root: ParentNode) {
+  root.querySelectorAll<HTMLElement>(".lbl-input, .labor-money").forEach(fitLaborField);
+}
+
 export function PricingTableEditor({
   sections,
   sharedDiesel,
@@ -135,6 +149,7 @@ export function PricingTableEditor({
         el.dataset.injected = "1";
       }
     });
+    fitAllLaborFields(root);
   }, []);
 
   useEffect(() => {
@@ -150,6 +165,8 @@ export function PricingTableEditor({
         const diesel = dieselEl ? Number(dieselEl.value.replace(",", ".")) || 0 : 0;
         const fx = fxEl ? Number(fxEl.value.replace(/\./g, "").replace(",", ".")) || 0 : 0;
         recalcScope(t, root, diesel, fx);
+      } else if (t.matches(".lbl-input, .labor-money")) {
+        fitLaborField(t);
       }
     };
 

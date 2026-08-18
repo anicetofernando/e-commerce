@@ -104,6 +104,11 @@ export const LB_PAIR1_TOP = 564.0;
 export const LB_PAIR1_ROW_H = 59.0;
 export const LB_PAIR2_TOP = 1359.0;
 export const LB_PAIR2_ROW_H = 98.0;
+// Forklift Mobilization (pair 2's right column) isn't vertically synced with
+// Extra Service Fees on the left — the source layout starts it noticeably
+// higher, with slightly taller rows. Measured separately.
+export const LB_PAIR2_RIGHT_TOP = 1328.0;
+export const LB_PAIR2_RIGHT_ROW_H = 108.0;
 
 export const LB_ROW_BG_PAIR1: RGB = [230, 230, 230];
 export const LB_ROW_BG_PAIR2_LEFT: RGB[] = [[230, 209, 192], [226, 197, 179]];

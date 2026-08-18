@@ -19,6 +19,8 @@ import {
   LB_PAIR1_ROW_H,
   LB_PAIR2_TOP,
   LB_PAIR2_ROW_H,
+  LB_PAIR2_RIGHT_TOP,
+  LB_PAIR2_RIGHT_ROW_H,
   LB_ROW_BG_PAIR1,
   LB_ROW_BG_PAIR2_LEFT,
   LB_ROW_BG_PAIR2_RIGHT,
@@ -192,7 +194,7 @@ export function renderLaborTable(config: LaborTableConfig, overrides: Record<str
     block("labor", LB_PAIR1_TOP, LB_PAIR1_ROW_H, "left", rgb(LB_ROW_BG_PAIR1)),
     block("tire", LB_PAIR1_TOP, LB_PAIR1_ROW_H, "right", rgb(LB_ROW_BG_PAIR1)),
     block("extra", LB_PAIR2_TOP, LB_PAIR2_ROW_H, "left", LB_ROW_BG_PAIR2_LEFT.map(rgb)),
-    block("forklift", LB_PAIR2_TOP, LB_PAIR2_ROW_H, "right", LB_ROW_BG_PAIR2_RIGHT.map(rgb)),
+    block("forklift", LB_PAIR2_RIGHT_TOP, LB_PAIR2_RIGHT_ROW_H, "right", LB_ROW_BG_PAIR2_RIGHT.map(rgb)),
   ].join("\n");
 
   return `
